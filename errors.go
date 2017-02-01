@@ -17,6 +17,11 @@ func handleWarning(warning string) {
 	color.Yellow("Warning: %s", warning)
 }
 
+func trowError(err string) {
+	color.Red("error: %s", err)
+	os.Exit(1)
+}
+
 func checkValueWarnings(values map[string]string) {
 
 	for k, v := range values {

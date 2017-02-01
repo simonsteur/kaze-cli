@@ -2,7 +2,6 @@ package main
 
 import (
 	"bytes"
-	"fmt"
 	"io/ioutil"
 	"net/http"
 )
@@ -22,7 +21,7 @@ func doSensuAPIRequest(request *request) []byte {
 	// do request
 	res, err := http.DefaultClient.Do(req)
 	if err != nil {
-		fmt.Print(err)
+		handleError(err)
 	}
 	// read and close response
 	body, _ := ioutil.ReadAll(res.Body)

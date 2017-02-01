@@ -1,7 +1,13 @@
 package main
 
-import "fmt"
-import "encoding/json"
+import (
+	"encoding/json"
+	"fmt"
+
+	"os"
+
+	"github.com/urfave/cli"
+)
 
 type proxyclient struct {
 	Name          string   `json:"name"`
@@ -10,12 +16,61 @@ type proxyclient struct {
 	Environment   string   `json:"environment"`
 }
 
+func manageClient(c *cli.Context) {
+
+	message := "you selected more than one operation, please only specify one operation (list, create, delete)"
+
+	//check if more than one operation has been specified
+	if clientList && clientDelete && clientCreate {
+		trowError(message)
+		os.Exit(1)
+	}
+	if clientList && clientDelete {
+		trowError(message)
+		os.Exit(1)
+	}
+	if clientList && clientCreate {
+		trowError(message)
+		os.Exit(1)
+	}
+	if clientDelete && clientCreate {
+		trowError(message)
+		os.Exit(1)
+	}
+	if clientDelete && clientList {
+		trowError(message)
+		os.Exit(1)
+	}
+
+	// execute operations
+
+	if clientList {
+		listClients(clientName)
+	}
+	if clientCreate {
+		createNewClient(clientName, clientAddress, clientEnvironment, clientSubscriptions)
+	}
+	if clientDelete {
+		deleteClient(clientName)
+	}
+}
+
 func createNewClient(name, address, environment string, subscriptions []string) {
+	if name == "" {
+		trowError("no name specified")
+	}
+	if address == "" {
+		trowError("no address specified")
+	}
+	if environment == "" {
+		trowError("no environment specified")
+	}
+
 	pl := &proxyclient{
-		Name:          "main-fw",
-		Address:       "192.168.201.253",
-		Subscriptions: []string{"network"},
-		Environment:   "production",
+		Name:          name,
+		Address:       address,
+		Subscriptions: subscriptions,
+		Environment:   environment,
 	}
 	payload, err := json.Marshal(pl)
 	if err != nil {
@@ -31,6 +86,9 @@ func createNewClient(name, address, environment string, subscriptions []string) 
 }
 
 func deleteClient(client string) {
+	if clientName == "" {
+		trowError("no client name specified")
+	}
 	req := new(request)
 	req.Method = "DELETE"
 	req.URL = clientapi + "/" + client
@@ -48,6 +106,12 @@ func listClients(client string) {
 		req.URL = clientapi
 	}
 	res := doSensuAPIRequest(req)
+	if string(res) == "" && client != "" {
+		trowError(client + "not found")
+	}
+	if string(res) == "" {
+		trowError("something went wrong")
+	}
 	result := prettyJSON(string(res))
 	fmt.Printf(result)
 }

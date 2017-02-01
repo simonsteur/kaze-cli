@@ -47,24 +47,25 @@ func main() {
 				},
 				cli.StringFlag{
 					Name:        "name",
-					Usage:       "name of the client",
+					Usage:       "name of the client (required for create)",
 					Destination: &clientName,
 				},
 				cli.StringFlag{
 					Name:        "environment, env",
-					Usage:       "address of the client",
+					Usage:       "environment of the client (required for create)",
 					Destination: &clientEnvironment,
 				},
 				cli.StringFlag{
 					Name:        "address",
-					Usage:       "address of the client",
+					Usage:       "address of the client (required for create)",
 					Destination: &clientAddress,
 				},
 				cli.StringSliceFlag{
 					Name:  "subscriptions",
-					Usage: "address of the client",
+					Usage: "subcriptions of the client (required for create)",
 				},
 			},
+			Action: manageClient,
 		},
 	}
 	app.Run(os.Args)
