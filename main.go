@@ -1,6 +1,7 @@
 package main
 
 import "github.com/urfave/cli"
+import "os"
 
 var (
 	config    = Cfg()
@@ -66,4 +67,5 @@ func main() {
 			},
 		},
 	}
+	app.Run(os.Args)
 }
