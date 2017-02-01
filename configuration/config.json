@@ -1,0 +1,6 @@
+{
+
+"sensu_server" : "172.16.201.153",
+"sensu_server_port" : "4567"
+
+}
