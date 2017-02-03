@@ -34,6 +34,7 @@ func manageClient(c *cli.Context) {
 		os.Exit(1)
 	}
 	if clientDelete && clientCreate {
+
 		trowError(message)
 		os.Exit(1)
 	}
