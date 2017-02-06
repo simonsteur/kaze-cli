@@ -21,12 +21,3 @@ func trowError(err string) {
 	color.Red("error: %s", err)
 	os.Exit(1)
 }
-
-func checkValueWarnings(values map[string]string) {
-
-	for k, v := range values {
-		if v == "" {
-			handleWarning(k + " not specified, using default value")
-		}
-	}
-}

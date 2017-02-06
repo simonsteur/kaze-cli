@@ -11,6 +11,8 @@ var (
 	clientList          bool
 	clientCreate        bool
 	clientDelete        bool
+	clientBulk          bool
+	clientBulkFile      string
 	clientName          string
 	clientAddress       string
 	clientEnvironment   string
@@ -20,7 +22,7 @@ var (
 func main() {
 
 	app := cli.NewApp()
-	app.Name = "sensuamplo"
+	app.Name = "kaze"
 	app.Version = "0.1"
 	app.Usage = "control sensu from a cli"
 	app.EnableBashCompletion = true
@@ -44,6 +46,16 @@ func main() {
 					Name:        "d, delete",
 					Usage:       "delete clients",
 					Destination: &clientDelete,
+				},
+				cli.BoolFlag{
+					Name:        "b, bulk",
+					Usage:       "use if you wish to create or delete clients in bulk, requires the --file flag",
+					Destination: &clientBulk,
+				},
+				cli.StringFlag{
+					Name:        "f, file",
+					Usage:       "required when using bylk & delete. Has to be a correctly formatted json file.",
+					Destination: &clientBulkFile,
 				},
 				cli.StringFlag{
 					Name:        "name",
