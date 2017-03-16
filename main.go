@@ -6,12 +6,22 @@ import (
 )
 
 var (
-	config    = Cfg()
-	apibase   = "http://" + config.Sensu + ":" + config.Port
-	clientapi = apibase + "/clients"
-	checksapi = apibase + "/checks"
+	//load config
+	config = Cfg()
 
-	// client flag vars
+	// api endpoints
+	apibase        = "http://" + config.Sensu + ":" + config.Port
+	clientapi      = apibase + "/clients"
+	checksapi      = apibase + "/checks"
+	resultssapi    = apibase + "/results"
+	aggregatessapi = apibase + "/aggregates"
+	eventssapi     = apibase + "/events"
+	silencedsapi   = apibase + "/silenced"
+	stashesapi     = apibase + "/stashes"
+	healthapi      = apibase + "/health"
+	infoapi        = apibase + "/info"
+
+	// generic
 	client    bool
 	checks    bool
 	events    bool
@@ -22,47 +32,69 @@ var (
 	name      []string
 	bulkFile  string
 	// silence command specific
-	listSilenced         bool
-	clearSilenced        bool
-	subscriptionSilenced bool
+	silenceClear        bool
+	silenceList         bool
+	silenceSubscription bool
+	// check & resolve command specific
+	checkName string
+	checkAll  bool
 )
 
 func main() {
 
-	//list command
+	// list subcommand
 	listCmd := flag.NewFlagSet("list", flag.ExitOnError)
+	// list flags
 	listCmd.BoolVar(&client, "client", false, "use to list client(s)")
-	listCmd.BoolVar(&check, "checks", false, "use to list check(s)")
-	listCmd.BoolVar(&event, "events", false, "use to list event(s)")
+	listCmd.BoolVar(&check, "check", false, "use to list check(s)")
+	listCmd.BoolVar(&event, "event", false, "use to list event(s)")
 	listCmd.BoolVar(&silence, "silence", false, "use to list silence entr(y)(ies)")
 	listCmd.BoolVar(&result, "result", false, "use to list result(s)")
 	listCmd.BoolVar(&aggregate, "aggregate", false, "luse to ist aggregate(s)")
-	istCmd.BoolVar(&stash, "stash", false, "use to list stash(es)")
+	listCmd.BoolVar(&stash, "stash", false, "use to list stash(es)")
 	listCmd.StringVar(&name, "name", "", "specify the name(s) of the object(s) to list")
 
-	//create command
+	// create subcommand
 	createCmd := flag.NewFlagSet("create", flag.ExitOnError)
+	// create flags
 	createCmd.BoolVar(&client, "client", false, "use to create client(s)")
 	createCmd.BoolVar(&result, "result", false, "use to create result(s)")
 	createCmd.BoolVar(&stash, "stash", false, "use to create stash(es)")
 	createCmd.BoolVar(&bulkFile, "file", false, "a valid json file for creation of objects")
 
-	//delete command
+	// delete subcommand
 	deleteCmd := flag.NewFlagSet("delete", flag.ExitOnError)
-	listCmd.BoolVar(&client, "client", false, "use to delete client(s)")
-	listCmd.BoolVar(&event, "events", false, "use to delete event(s)")
-	listCmd.BoolVar(&result, "result", false, "use to delete result(s)")
-	listCmd.BoolVar(&aggregate, "aggregate", false, "use to delete aggregate(s)")
-	istCmd.BoolVar(&stash, "stash", false, "use to delete stash(es)")
-	listCmd.StringVar(&name, "name", "", "specify the name(s) of the object(s) to delete")
+	// delete flags
+	deleteCmd.BoolVar(&client, "client", false, "use to delete client(s)")
+	deleteCmd.BoolVar(&event, "events", false, "use to delete event(s)")
+	deleteCmd.BoolVar(&result, "result", false, "use to delete result(s)")
+	deleteCmd.BoolVar(&aggregate, "aggregate", false, "use to delete aggregate(s)")
+	deleteCmd.BoolVar(&stash, "stash", false, "use to delete stash(es)")
+	deleteCmd.StringVar(&name, "name", "", "specify the name(s) of the object(s) to delete")
 
-	//silence command
+	// silence subcommand
 	silenceCmd := flag.NewFlagSet("silence", flag.ExitOnError)
-	listCmd.BoolVar(&clear, "clear", false, "use to clear silenced entr(y)(ies)")
-	listCmd.BoolVar(&list, "list", false, "use to list silenced entr(y(ies)")
-	listCmd.BoolVar(&client, "client", false, "use to target client(s)")
-	listCmd.BoolVar(&check, "subscription", false, "use to target subscription(s)")
-	listCmd.StringVar(&name, "name", "", "specify the name(s) of the client(s) or subscription(s)")
+	// silence flags
+	silenceCmd.BoolVar(&silenceClear, "clear", false, "use to clear silenced entr(y)(ies)")
+	silenceCmd.BoolVar(&silenceList, "list", false, "use to list silenced entr(y(ies)")
+	silenceCmd.BoolVar(&client, "client", false, "use to target client(s)")
+	silenceCmd.BoolVar(&silenceSubscription, "subscription", false, "use to target subscription(s)")
+	silenceCmd.StringVar(&name, "name", "", "specify the name(s) of the client(s) or subscription(s)")
+
+	//check subcommand
+	checkCmd := flag.NewFlagSet("check", flag.ExitOnError)
+	//check flags
+	checkCmd.StringVar(&name, "client-name", "", "specify the name of the client")
+	checkCmd.StringVar(&checkName, "check-name", "", "specify the name of the check")
+	checkCmd.BoolVar(&checkAll, "all", false, "use to target all checks")
+	checkCmd.BoolVar(&checkResult, "result", false, "use to get the result back from the requested check")
+
+	//resolve subcommand
+	resolveCmd := flag.NewFlagSet("check", flag.ExitOnError)
+	//resolve flags
+	cresolveCmd.StringVar(&name, "client-name", "", "specify the name of the client")
+	resolveCmd.StringVar(&checkName, "check-name", "", "specify the name of the check")
+	resolveCmd.BoolVar(&checkAll, "all", false, "use to target all events")
 
 	switch os.Args[1] {
 	case "list":
@@ -73,15 +105,33 @@ func main() {
 		listCmd.Parse(os.Args[2:])
 	case "silence":
 		listCmd.Parse(os.Args[2:])
+	case "check":
+		listCmd.Parse(os.Args[2:])
+	case "resolve":
+		listCmd.Parse(os.Args[2:])
 	default:
 		flag.PrintDefaults()
 		os.Exit(1)
 	}
 
 	if listCmd.Parsed() {
-		handleListCmd(client, check, event, silence, result, aggregate, stash)
+		cmdController("list")
 	}
-
+	if createCmd.Parsed() {
+		cmdController("create")
+	}
+	if deleteCmd.Parsed() {
+		cmdController("delete")
+	}
+	if silenceCmd.Parsed() {
+		cmdController("silence")
+	}
+	if checkCmd.Parsed() {
+		cmdController("check")
+	}
+	if checkCmd.Parsed() {
+		cmdController("resolve")
+	}
 	// app := cli.NewApp()
 	// app.Name = "kaze"
 	// app.Version = "1.0"
