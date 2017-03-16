@@ -14,7 +14,9 @@ var (
 	// client flag vars
 	client              bool
 	checks              bool
-	delete              bool
+	events              bool
+	silence             bool
+	results             bool
 	name                string
 	clientBulk          bool
 	clientBulkFile      string
@@ -26,10 +28,11 @@ var (
 func main() {
 
 	listCmd := flag.NewFlagSet("list", flag.ExitOnError)
-	listCmd.BoolVar(&client, "client", true, "specify to list clients")
-	listCmd.BoolVar(&checks, "checks", true, "specify to list checks")
+	listCmd.BoolVar(&client, "client", false, "specify to list clients")
+	listCmd.BoolVar(&checks, "checks", false, "specify to list checks")
+	listCmd.BoolVar(&events, "events", false, "specify to list events")
 
-	// listValue := listCmd.String("name", "", "specify the clientName to list a single client")
+	// error message
 
 	switch os.Args[1] {
 	case "list":
@@ -40,7 +43,7 @@ func main() {
 	}
 
 	if listCmd.Parsed() {
-
+		handleListCmd(client, checks, events)
 	}
 
 	// app := cli.NewApp()
