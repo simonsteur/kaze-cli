@@ -92,7 +92,7 @@ func main() {
 	//resolve subcommand
 	resolveCmd := flag.NewFlagSet("check", flag.ExitOnError)
 	//resolve flags
-	cresolveCmd.StringVar(&name, "client-name", "", "specify the name of the client")
+	resolveCmd.StringVar(&name, "client-name", "", "specify the name of the client")
 	resolveCmd.StringVar(&checkName, "check-name", "", "specify the name of the check")
 	resolveCmd.BoolVar(&checkAll, "all", false, "use to target all events")
 
