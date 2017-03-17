@@ -84,7 +84,7 @@ func kazeList(api, value string) {
 	resultHandler(res)
 }
 
-//kazeDelete delets the specified object
+//kazeDelete deletes the specified object
 func kazeDelete(api, value string) {
 	if value == "" {
 		trowError("no name specified.")

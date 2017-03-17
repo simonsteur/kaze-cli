@@ -31,14 +31,18 @@ var (
 	stash     bool
 	name      string
 	file      string
-	// create command specific
-	createAddress       string
-	createSubscriptions string
-	createEnvironment   string
-	createContent       string
-	createSource        string
-	createOutput        string
-	createStatus        int
+	// createClient command specific
+	clientAddress       string
+	clientSubscriptions string
+	clientEnvironment   string
+	// createResult command specific
+	resultSource string
+	resultOutput string
+	resultStatus int
+	// create stash command specific
+	stashContent string
+	stashPath    string
+	stashExpire  int
 	// silence command specific
 	silenceClear        bool
 	silenceList         bool
@@ -62,20 +66,31 @@ func main() {
 	listCmd.BoolVar(&stash, "stash", false, "use to list stash(es)")
 	listCmd.StringVar(&name, "name", "", "specify the name(s) of the object(s) to list")
 
-	// create subcommand
-	createCmd := flag.NewFlagSet("create", flag.ExitOnError)
-	// create flags
-	createCmd.BoolVar(&client, "client", false, "use to create client(s)")
-	createCmd.BoolVar(&result, "result", false, "use to create result(s)")
-	createCmd.BoolVar(&stash, "stash", false, "use to create stash(es)")
-	createCmd.StringVar(&file, "file", "", "a valid json file for creation of objects, for bulk operations")
-	createCmd.StringVar(&name, "name", "", "name of client/stash/result to create")
-	createCmd.StringVar(&createAddress, "client-address", "", "address of the client to create")
-	createCmd.StringVar(&createSubscriptions, "client-subscriptions", "", "subscriptions of the client to create, comma sperated")
-	createCmd.StringVar(&createContent, "stash-content", "", "content of the stash to create, json formatted")
-	createCmd.StringVar(&createSource, "result-source", "", "source of the result")
-	createCmd.StringVar(&createOutput, "result-output", "", "output of the result")
-	createCmd.IntVar(&createStatus, "result-status", 0, "status of the result")
+	// createClient subcommand
+	createClientCmd := flag.NewFlagSet("create-client", flag.ExitOnError)
+	// createClient flags
+	createClientCmd.StringVar(&file, "file, f", "", "a valid json file for creation of objects, for bulk operations. if specified it will override all other arguments")
+	createClientCmd.StringVar(&name, "name", "", "name of client to create")
+	createClientCmd.StringVar(&clientAddress, "address", "", "address of the client to create")
+	createClientCmd.StringVar(&clientSubscriptions, "subscriptions", "", "subscriptions of the client to create, comma sperated")
+	createClientCmd.StringVar(&clientEnvironment, "environment", "", "content of the stash to create, json formatted")
+
+	// createResult subcommand
+	createResultCmd := flag.NewFlagSet("create-result", flag.ExitOnError)
+	// createClient flags
+	createResultCmd.StringVar(&file, "file, f", "", "a valid json file for creation of objects, for bulk operations. if specified it will override all other arguments")
+	createResultCmd.StringVar(&name, "name", "", "name of the result check to create")
+	createResultCmd.StringVar(&resultSource, "source", "", "source of the result")
+	createResultCmd.StringVar(&resultOutput, "output", "", "output of the result")
+	createResultCmd.IntVar(&resultStatus, "status", 0, "statuscode of the result")
+
+	// createResult subcommand
+	createStashCmd := flag.NewFlagSet("create-stash", flag.ExitOnError)
+	// createClient flags
+	createStashCmd.StringVar(&file, "file, f", "", "a valid json file for creation of objects, for bulk operations. if specified it will override all other arguments")
+	createStashCmd.StringVar(&stashPath, "path", "", "path of the stash to create/update")
+	createStashCmd.StringVar(&stashContent, "content", "", "content of the stash, json formatted")
+	createStashCmd.IntVar(&stashExpire, "expire", -1, "TTL of the stash in seconds")
 
 	// delete subcommand
 	deleteCmd := flag.NewFlagSet("delete", flag.ExitOnError)
@@ -114,8 +129,12 @@ func main() {
 	switch os.Args[1] {
 	case "list":
 		listCmd.Parse(os.Args[2:])
-	case "create":
-		createCmd.Parse(os.Args[2:])
+	case "create-client":
+		createClientCmd.Parse(os.Args[2:])
+	case "create-result":
+		createResultCmd.Parse(os.Args[2:])
+	case "create-stash":
+		createStashCmd.Parse(os.Args[2:])
 	case "delete":
 		deleteCmd.Parse(os.Args[2:])
 	case "silence":
