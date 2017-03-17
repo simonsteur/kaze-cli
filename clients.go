@@ -1,10 +1,40 @@
 package main
 
 // import (
+// 	"encoding/json"
+// 	"fmt"
+// 	"io/ioutil"
+
 // 	"os"
 
 // 	"github.com/urfave/cli"
 // )
+
+// //Bulk struct used for bulk creation / deleting of clients
+// type Bulk struct {
+// 	Proxyclient []Proxyclient `json:"clients"`
+// }
+
+// //Proxyclient struct
+// type Proxyclient struct {
+// 	Name          string   `json:"name"`
+// 	Address       string   `json:"address"`
+// 	Subscriptions []string `json:"subscriptions"`
+// 	Environment   string   `json:"environment"`
+// }
+
+// func readBulkfile(f string) Bulk {
+// 	var bulk Bulk
+// 	file, err := ioutil.ReadFile(f)
+// 	if err != nil {
+// 		handleError(err)
+// 	}
+// 	err = json.Unmarshal(file, &bulk)
+// 	if err != nil {
+// 		handleError(err)
+// 	}
+// 	return bulk
+// }
 
 // func manageClient(c *cli.Context) {
 

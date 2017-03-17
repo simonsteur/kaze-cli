@@ -10,27 +10,35 @@ var (
 	config = Cfg()
 
 	// api endpoints
-	apibase        = "http://" + config.Sensu + ":" + config.Port
-	clientapi      = apibase + "/clients"
-	checksapi      = apibase + "/checks"
-	resultssapi    = apibase + "/results"
-	aggregatessapi = apibase + "/aggregates"
-	eventssapi     = apibase + "/events"
-	silencedsapi   = apibase + "/silenced"
-	stashesapi     = apibase + "/stashes"
-	healthapi      = apibase + "/health"
-	infoapi        = apibase + "/info"
+	apibase       = "http://" + config.Sensu + ":" + config.Port
+	clientsapi    = apibase + "/clients"
+	checksapi     = apibase + "/checks"
+	resultsapi    = apibase + "/results"
+	aggregatesapi = apibase + "/aggregates"
+	eventsapi     = apibase + "/events"
+	silencedapi   = apibase + "/silenced"
+	stashesapi    = apibase + "/stashes"
+	healthapi     = apibase + "/health"
+	infoapi       = apibase + "/info"
 
 	// generic
 	client    bool
-	checks    bool
-	events    bool
+	check     bool
+	event     bool
 	silence   bool
-	results   bool
+	result    bool
 	aggregate bool
 	stash     bool
-	name      []string
-	bulkFile  string
+	name      string
+	file      string
+	// create command specific
+	createAddress       string
+	createSubscriptions string
+	createEnvironment   string
+	createContent       string
+	createSource        string
+	createOutput        string
+	createStatus        int
 	// silence command specific
 	silenceClear        bool
 	silenceList         bool
@@ -50,7 +58,7 @@ func main() {
 	listCmd.BoolVar(&event, "event", false, "use to list event(s)")
 	listCmd.BoolVar(&silence, "silence", false, "use to list silence entr(y)(ies)")
 	listCmd.BoolVar(&result, "result", false, "use to list result(s)")
-	listCmd.BoolVar(&aggregate, "aggregate", false, "luse to ist aggregate(s)")
+	listCmd.BoolVar(&aggregate, "aggregate", false, "use to ist aggregate(s)")
 	listCmd.BoolVar(&stash, "stash", false, "use to list stash(es)")
 	listCmd.StringVar(&name, "name", "", "specify the name(s) of the object(s) to list")
 
@@ -60,13 +68,20 @@ func main() {
 	createCmd.BoolVar(&client, "client", false, "use to create client(s)")
 	createCmd.BoolVar(&result, "result", false, "use to create result(s)")
 	createCmd.BoolVar(&stash, "stash", false, "use to create stash(es)")
-	createCmd.BoolVar(&bulkFile, "file", false, "a valid json file for creation of objects")
+	createCmd.StringVar(&file, "file", "", "a valid json file for creation of objects, for bulk operations")
+	createCmd.StringVar(&name, "name", "", "name of client/stash/result to create")
+	createCmd.StringVar(&createAddress, "client-address", "", "address of the client to create")
+	createCmd.StringVar(&createSubscriptions, "client-subscriptions", "", "subscriptions of the client to create, comma sperated")
+	createCmd.StringVar(&createContent, "stash-content", "", "content of the stash to create, json formatted")
+	createCmd.StringVar(&createSource, "result-source", "", "source of the result")
+	createCmd.StringVar(&createOutput, "result-output", "", "output of the result")
+	createCmd.IntVar(&createStatus, "result-status", 0, "status of the result")
 
 	// delete subcommand
 	deleteCmd := flag.NewFlagSet("delete", flag.ExitOnError)
 	// delete flags
 	deleteCmd.BoolVar(&client, "client", false, "use to delete client(s)")
-	deleteCmd.BoolVar(&event, "events", false, "use to delete event(s)")
+	deleteCmd.BoolVar(&event, "event", false, "use to delete event(s)")
 	deleteCmd.BoolVar(&result, "result", false, "use to delete result(s)")
 	deleteCmd.BoolVar(&aggregate, "aggregate", false, "use to delete aggregate(s)")
 	deleteCmd.BoolVar(&stash, "stash", false, "use to delete stash(es)")
@@ -87,7 +102,7 @@ func main() {
 	checkCmd.StringVar(&name, "client-name", "", "specify the name of the client")
 	checkCmd.StringVar(&checkName, "check-name", "", "specify the name of the check")
 	checkCmd.BoolVar(&checkAll, "all", false, "use to target all checks")
-	checkCmd.BoolVar(&checkResult, "result", false, "use to get the result back from the requested check")
+	checkCmd.BoolVar(&result, "result", false, "use to get the result back from the requested check")
 
 	//resolve subcommand
 	resolveCmd := flag.NewFlagSet("check", flag.ExitOnError)
@@ -100,91 +115,60 @@ func main() {
 	case "list":
 		listCmd.Parse(os.Args[2:])
 	case "create":
-		listCmd.Parse(os.Args[2:])
+		createCmd.Parse(os.Args[2:])
 	case "delete":
-		listCmd.Parse(os.Args[2:])
+		deleteCmd.Parse(os.Args[2:])
 	case "silence":
-		listCmd.Parse(os.Args[2:])
+		silenceCmd.Parse(os.Args[2:])
 	case "check":
-		listCmd.Parse(os.Args[2:])
+		checkCmd.Parse(os.Args[2:])
 	case "resolve":
-		listCmd.Parse(os.Args[2:])
+		resolveCmd.Parse(os.Args[2:])
 	default:
 		flag.PrintDefaults()
 		os.Exit(1)
 	}
 
 	if listCmd.Parsed() {
-		cmdController("list")
+		if listCmd.NFlag() <= 2 {
+			if listCmd.NFlag() == 2 && name == "" {
+				trowError("no name specified or too many arguments given. Only select one type ( e.g. --client ) or specify a name with --name")
+			}
+			cmdControllerList()
+		} else {
+			trowError("too many arguments given, expecting 2 or less.")
+		}
 	}
-	if createCmd.Parsed() {
-		cmdController("create")
-	}
-	if deleteCmd.Parsed() {
-		cmdController("delete")
-	}
-	if silenceCmd.Parsed() {
-		cmdController("silence")
-	}
-	if checkCmd.Parsed() {
-		cmdController("check")
-	}
-	if checkCmd.Parsed() {
-		cmdController("resolve")
-	}
-	// app := cli.NewApp()
-	// app.Name = "kaze"
-	// app.Version = "1.0"
-	// app.Usage = "control sensu from a cli"
-	// app.EnableBashCompletion = true
 
-	// app.Commands = []cli.Command{
-	// 	{
-	// 		Name:  "list",
-	// 		Usage: "use to add a client to sensu (most likely a proxy client)",
-	// 		Flags: []cli.Flag{
-	// 			cli.BoolFlag{
-	// 				Name:        "l, list",
-	// 				Usage:       "list clients",
-	// 				Destination: &clientList,
-	// 			},
-	// 			cli.BoolFlag{
-	// 				Name:        "c, create",
-	// 				Usage:       "create clients",
-	// 				Destination: &clientCreate,
-	// 			},
-	// 			cli.BoolFlag{
-	// 				Name:        "d, delete",
-	// 				Usage:       "delete clients",
-	// 				Destination: &clientDelete,
-	// 			},
-	// 			cli.StringFlag{
-	// 				Name:        "f, file",
-	// 				Usage:       "specify when creating clients to do a bulk operation. Has to be a correctly formatted json file.",
-	// 				Destination: &clientBulkFile,
-	// 			},
-	// 			cli.StringFlag{
-	// 				Name:        "name",
-	// 				Usage:       "name of the client (required for create)",
-	// 				Destination: &clientName,
-	// 			},
-	// 			cli.StringFlag{
-	// 				Name:        "environment, env",
-	// 				Usage:       "environment of the client (required for create)",
-	// 				Destination: &clientEnvironment,
-	// 			},
-	// 			cli.StringFlag{
-	// 				Name:        "address",
-	// 				Usage:       "address of the client (required for create)",
-	// 				Destination: &clientAddress,
-	// 			},
-	// 			cli.StringSliceFlag{
-	// 				Name:  "subscriptions",
-	// 				Usage: "subcriptions of the client (required for create)",
-	// 			},
-	// 		},
-	// 		Action: manageClient,
-	// 	},
+	if createCmd.Parsed() {
+		if file == "" {
+			trowError("no file specified")
+		}
+		if createCmd.NFlag() == 2 && file != "" {
+			cmdControllerCreate()
+		}
+		if createCmd.NFlag() < 2 {
+			trowError("too few arguments given, expecting 2 ( e.g. --client and --file ).")
+		}
+		if createCmd.NFlag() > 2 {
+			trowError("too many arguments given, expecting 2.")
+		}
+	}
+
+	// if createCmd.Parsed() {
+	// 	cmdControllerCreate()
 	// }
-	// app.Run(os.Args)
+	// if deleteCmd.Parsed() {
+	// 	cmdControllerDelete()
+	// }
+	// if silenceCmd.Parsed() {
+	// 	cmdControllerSilence()
+	// }
+	// if checkCmd.Parsed() {
+	// 	cmdControllerCheck()
+	// }
+	// if checkCmd.Parsed() {
+	// 	cmdControllerResolve()
+	// }
+
 }
