@@ -17,8 +17,6 @@ import (
 // 	return output
 // }
 
-//PrintHelpText takes the usage input of flags and formats into nice text.
-
 //pretty JSON turns json input into a more readably and pretty json string
 func prettyJSON(input string) string {
 	var output bytes.Buffer

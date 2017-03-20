@@ -139,6 +139,13 @@ func main() {
 	resolveCmd.StringVar(&checkName, "check-name", "", "specify the name of the check")
 	resolveCmd.BoolVar(&checkAll, "all", false, "use to target all events")
 
+	listCmd.Usage = func() {
+		fmt.Printf("Usage:\n")
+		fmt.Printf("  kaze list [options]\n\n")
+		fmt.Printf("Parameters:\n")
+		listCmd.PrintDefaults()
+	}
+
 	switch os.Args[1] {
 	case "list":
 		listCmd.Parse(os.Args[2:])
@@ -157,13 +164,12 @@ func main() {
 	case "resolve":
 		resolveCmd.Parse(os.Args[2:])
 	default:
-
 		os.Exit(1)
 	}
 
 	if listCmd.Parsed() {
 		if listCmd.NFlag() < 1 {
-			listCmd.PrintDefaults()
+			listCmd.Usage()
 		}
 		if listCmd.NFlag() <= 2 {
 			if listCmd.NFlag() == 2 && len(name) == 0 {
