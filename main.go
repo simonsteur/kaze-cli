@@ -2,7 +2,9 @@ package main
 
 import (
 	"flag"
+	"fmt"
 	"os"
+	"strings"
 )
 
 var (
@@ -29,11 +31,11 @@ var (
 	result    bool
 	aggregate bool
 	stash     bool
-	name      string
+	name      stringArray
 	file      string
 	// createClient command specific
 	clientAddress       string
-	clientSubscriptions string
+	clientSubscriptions stringArray
 	clientEnvironment   string
 	// createResult command specific
 	resultSource string
@@ -52,6 +54,17 @@ var (
 	checkAll  bool
 )
 
+type stringArray []string
+
+func (array *stringArray) String() string {
+	return fmt.Sprintf("%v", *array)
+}
+
+func (array *stringArray) Set(value string) error {
+	*array = strings.Split(value, ",")
+	return nil
+}
+
 func main() {
 
 	// list subcommand
@@ -62,24 +75,24 @@ func main() {
 	listCmd.BoolVar(&event, "event", false, "use to list event(s)")
 	listCmd.BoolVar(&silence, "silence", false, "use to list silence entr(y)(ies)")
 	listCmd.BoolVar(&result, "result", false, "use to list result(s)")
-	listCmd.BoolVar(&aggregate, "aggregate", false, "use to ist aggregate(s)")
+	listCmd.BoolVar(&aggregate, "aggregate", false, "use to list aggregate(s)")
 	listCmd.BoolVar(&stash, "stash", false, "use to list stash(es)")
-	listCmd.StringVar(&name, "name", "", "specify the name(s) of the object(s) to list")
+	listCmd.Var(&name, "name", "specify the name(s) of the object(s) to list")
 
 	// createClient subcommand
 	createClientCmd := flag.NewFlagSet("create-client", flag.ExitOnError)
 	// createClient flags
 	createClientCmd.StringVar(&file, "file, f", "", "a valid json file for creation of objects, for bulk operations. if specified it will override all other arguments")
-	createClientCmd.StringVar(&name, "name", "", "name of client to create")
+	createClientCmd.Var(&name, "name", "name of client to create")
 	createClientCmd.StringVar(&clientAddress, "address", "", "address of the client to create")
-	createClientCmd.StringVar(&clientSubscriptions, "subscriptions", "", "subscriptions of the client to create, comma sperated")
+	createClientCmd.Var(&clientSubscriptions, "subscriptions", "subscriptions of the client to create, comma sperated")
 	createClientCmd.StringVar(&clientEnvironment, "environment", "", "content of the stash to create, json formatted")
 
 	// createResult subcommand
 	createResultCmd := flag.NewFlagSet("create-result", flag.ExitOnError)
 	// createClient flags
 	createResultCmd.StringVar(&file, "file, f", "", "a valid json file for creation of objects, for bulk operations. if specified it will override all other arguments")
-	createResultCmd.StringVar(&name, "name", "", "name of the result check to create")
+	createResultCmd.Var(&name, "name", "name of the result check to create")
 	createResultCmd.StringVar(&resultSource, "source", "", "source of the result")
 	createResultCmd.StringVar(&resultOutput, "output", "", "output of the result")
 	createResultCmd.IntVar(&resultStatus, "status", 0, "statuscode of the result")
@@ -100,7 +113,7 @@ func main() {
 	deleteCmd.BoolVar(&result, "result", false, "use to delete result(s)")
 	deleteCmd.BoolVar(&aggregate, "aggregate", false, "use to delete aggregate(s)")
 	deleteCmd.BoolVar(&stash, "stash", false, "use to delete stash(es)")
-	deleteCmd.StringVar(&name, "name", "", "specify the name(s) of the object(s) to delete")
+	deleteCmd.Var(&name, "name", "specify the name(s) of the object(s) to delete")
 
 	// silence subcommand
 	silenceCmd := flag.NewFlagSet("silence", flag.ExitOnError)
@@ -109,12 +122,12 @@ func main() {
 	silenceCmd.BoolVar(&silenceList, "list", false, "use to list silenced entr(y(ies)")
 	silenceCmd.BoolVar(&client, "client", false, "use to target client(s)")
 	silenceCmd.BoolVar(&silenceSubscription, "subscription", false, "use to target subscription(s)")
-	silenceCmd.StringVar(&name, "name", "", "specify the name(s) of the client(s) or subscription(s)")
+	silenceCmd.Var(&name, "name", "specify the name(s) of the client(s) or subscription(s)")
 
 	//check subcommand
 	checkCmd := flag.NewFlagSet("check", flag.ExitOnError)
 	//check flags
-	checkCmd.StringVar(&name, "client-name", "", "specify the name of the client")
+	checkCmd.Var(&name, "client-name", "specify the name of the client")
 	checkCmd.StringVar(&checkName, "check-name", "", "specify the name of the check")
 	checkCmd.BoolVar(&checkAll, "all", false, "use to target all checks")
 	checkCmd.BoolVar(&result, "result", false, "use to get the result back from the requested check")
@@ -122,7 +135,7 @@ func main() {
 	//resolve subcommand
 	resolveCmd := flag.NewFlagSet("check", flag.ExitOnError)
 	//resolve flags
-	resolveCmd.StringVar(&name, "client-name", "", "specify the name of the client")
+	resolveCmd.Var(&name, "client-name", "specify the name of the client")
 	resolveCmd.StringVar(&checkName, "check-name", "", "specify the name of the check")
 	resolveCmd.BoolVar(&checkAll, "all", false, "use to target all events")
 
@@ -144,13 +157,16 @@ func main() {
 	case "resolve":
 		resolveCmd.Parse(os.Args[2:])
 	default:
-		flag.PrintDefaults()
+
 		os.Exit(1)
 	}
 
 	if listCmd.Parsed() {
+		if listCmd.NFlag() < 1 {
+			listCmd.PrintDefaults()
+		}
 		if listCmd.NFlag() <= 2 {
-			if listCmd.NFlag() == 2 && name == "" {
+			if listCmd.NFlag() == 2 && len(name) == 0 {
 				trowError("no name specified or too many arguments given. Only select one type ( e.g. --client ) or specify a name with --name")
 			}
 			cmdControllerList()
@@ -159,19 +175,8 @@ func main() {
 		}
 	}
 
-	if createCmd.Parsed() {
-		if file == "" {
-			trowError("no file specified")
-		}
-		if createCmd.NFlag() == 2 && file != "" {
-			cmdControllerCreate()
-		}
-		if createCmd.NFlag() < 2 {
-			trowError("too few arguments given, expecting 2 ( e.g. --client and --file ).")
-		}
-		if createCmd.NFlag() > 2 {
-			trowError("too many arguments given, expecting 2.")
-		}
+	if createClientCmd.Parsed() {
+		cmdControllerCreateClient()
 	}
 
 	// if createCmd.Parsed() {

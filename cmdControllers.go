@@ -25,14 +25,6 @@ func cmdControllerList() {
 	}
 }
 
-func cmdControllerCreate() {
-	if client {
-		kazeCreate(clientsapi, file)
-	}
-	if result {
-
-	}
-	if stash {
-
-	}
+func cmdControllerCreateClient() {
+	kazeCreateClient()
 }
