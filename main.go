@@ -139,13 +139,7 @@ func main() {
 	resolveCmd.StringVar(&checkName, "check-name", "", "specify the name of the check")
 	resolveCmd.BoolVar(&checkAll, "all", false, "use to target all events")
 
-	listCmd.Usage = func() {
-		fmt.Printf("Usage:\n")
-		fmt.Printf("  kaze list [options]\n\n")
-		fmt.Printf("Parameters:\n")
-		listCmd.PrintDefaults()
-	}
-
+	//switch on subcommand
 	switch os.Args[1] {
 	case "list":
 		listCmd.Parse(os.Args[2:])
@@ -167,9 +161,11 @@ func main() {
 		os.Exit(1)
 	}
 
+	//required flag check and function handling.
 	if listCmd.Parsed() {
 		if listCmd.NFlag() < 1 {
-			listCmd.Usage()
+			usagePrint()
+			listCmd.PrintDefaults()
 		}
 		if listCmd.NFlag() <= 2 {
 			if listCmd.NFlag() == 2 && len(name) == 0 {
@@ -182,23 +178,32 @@ func main() {
 	}
 
 	if createClientCmd.Parsed() {
-		cmdControllerCreateClient()
+		if createClientCmd.NFlag() < 1 {
+			usagePrint()
+			listCmd.PrintDefaults()
+		}
+		if createClientCmd.NFlag() >= 1 {
+			cmdControllerCreateClient()
+		}
 	}
 
-	// if createCmd.Parsed() {
-	// 	cmdControllerCreate()
-	// }
-	// if deleteCmd.Parsed() {
-	// 	cmdControllerDelete()
-	// }
-	// if silenceCmd.Parsed() {
-	// 	cmdControllerSilence()
-	// }
-	// if checkCmd.Parsed() {
-	// 	cmdControllerCheck()
-	// }
-	// if checkCmd.Parsed() {
-	// 	cmdControllerResolve()
-	// }
+	if createResultCmd.Parsed() {
+		if createResultCmd.NFlag() < 1 {
+			usagePrint()
+			createClientCmd.PrintDefaults()
+		}
+		if createResultCmd.NFlag() >= 1 {
+			cmdControllerCreateResult()
+		}
+	}
 
+	if createStashCmd.Parsed() {
+		if createStashCmd.NFlag() < 1 {
+			usagePrint()
+			createStashCmd.PrintDefaults()
+		}
+		if createStashCmd.NFlag() >= 1 {
+			cmdControllerCreateStash()
+		}
+	}
 }

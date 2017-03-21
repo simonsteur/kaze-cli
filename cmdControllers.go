@@ -28,3 +28,11 @@ func cmdControllerList() {
 func cmdControllerCreateClient() {
 	kazeCreateClient()
 }
+
+func cmdControllerCreateResult() {
+	kazeCreateResult()
+}
+
+func cmdControllerCreateStash() {
+	kazeCreateStash()
+}

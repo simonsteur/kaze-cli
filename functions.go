@@ -1,10 +1,6 @@
 package main
 
-import (
-	"encoding/json"
-	"fmt"
-	"io/ioutil"
-)
+import "encoding/json"
 
 // Bulk struct used for bulk client creation of clients
 type Bulk struct {
@@ -25,7 +21,7 @@ type Client struct {
 type Stash struct {
 	Path    string      `json:"path"`
 	Content interface{} `json:"content"`
-	Expire  string      `json:"expire"`
+	Expire  int         `json:"expire"`
 }
 
 // Result Struct
@@ -34,35 +30,6 @@ type Result struct {
 	Name   string `json:"name"`
 	Output string `json:"output"`
 	Status int    `json:"status"`
-}
-
-//readFileClients reads in the json file specified and places it in the clients struct.
-func readFileBulk(f string) Bulk {
-	var bulk Bulk
-	file, err := ioutil.ReadFile(f)
-	if err != nil {
-		handleError(err)
-	}
-	err = json.Unmarshal(file, &bulk)
-	if err != nil {
-		handleError(err)
-	}
-	return bulk
-}
-
-//readFile reads in the json file specified and places it in a struct.
-func readFile(f string) []byte {
-	file, err := ioutil.ReadFile(f)
-	if err != nil {
-		handleError(err)
-	}
-	return file
-}
-
-//resultHandler handles how the results from the functions should be returned.
-func resultHandler(res []byte) {
-	result := prettyJSON(string(res))
-	fmt.Printf(result)
 }
 
 //kazeList lists all return values or a single value
@@ -114,65 +81,68 @@ func kazeCreateClient() {
 			if err != nil {
 				handleError(err)
 			}
-			req := new(request)
-			req.Method = "POST"
-			req.URL = clientsapi
-			req.Payload = payload
-			res := doSensuAPIRequest(req)
-			result := prettyJSON(string(res))
-			fmt.Printf(result)
+			postPayload(payload)
 		}
 	} else {
-		cl := &Client{
+		str := &Client{
 			Name:          name[1],
 			Address:       clientAddress,
 			Subscriptions: clientSubscriptions,
 			Environment:   clientEnvironment,
 		}
-		payload, err := json.Marshal(cl)
+		payload, err := json.Marshal(str)
 		if err != nil {
 			handleError(err)
 		}
-		req := new(request)
-		req.Method = "POST"
-		req.URL = clientsapi
-		req.Payload = payload
-		res := doSensuAPIRequest(req)
-		result := prettyJSON(string(res))
-		fmt.Printf(result)
+		postPayload(payload)
 	}
 }
 
-func kazeCreateBulkResults() {
-	bulk := readFileBulk(file)
-	for _, v := range bulk.Result {
-		payload, err := json.Marshal(v)
+func kazeCreateResult() {
+	if file != "" {
+		bulk := readFileBulk(file)
+		for _, v := range bulk.Result {
+			payload, err := json.Marshal(v)
+			if err != nil {
+				handleError(err)
+			}
+			postPayload(payload)
+		}
+	} else {
+		str := &Result{
+			Name:   name[1],
+			Source: resultSource,
+			Output: resultOutput,
+			Status: resultStatus,
+		}
+		payload, err := json.Marshal(str)
 		if err != nil {
 			handleError(err)
 		}
-		req := new(request)
-		req.Method = "POST"
-		req.URL = resultsapi
-		req.Payload = payload
-		res := doSensuAPIRequest(req)
-		result := prettyJSON(string(res))
-		fmt.Printf(result)
+		postPayload(payload)
 	}
 }
 
-func kazeCreateBulkStashes() {
-	bulk := readFileBulk(file)
-	for _, v := range bulk.Result {
-		payload, err := json.Marshal(v)
+func kazeCreateStash() {
+	if file != "" {
+		bulk := readFileBulk(file)
+		for _, v := range bulk.Stash {
+			payload, err := json.Marshal(v)
+			if err != nil {
+				handleError(err)
+			}
+			postPayload(payload)
+		}
+	} else {
+		str := &Stash{
+			Path:    stashPath,
+			Content: stashContent,
+			Expire:  stashExpire,
+		}
+		payload, err := json.Marshal(str)
 		if err != nil {
 			handleError(err)
 		}
-		req := new(request)
-		req.Method = "POST"
-		req.URL = stashesapi
-		req.Payload = payload
-		res := doSensuAPIRequest(req)
-		result := prettyJSON(string(res))
-		fmt.Printf(result)
+		postPayload(payload)
 	}
 }
