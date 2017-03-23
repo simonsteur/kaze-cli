@@ -1,7 +1,6 @@
 package main
 
 func cmdControllerList() {
-
 	if client {
 		kazeList(clientsapi, name)
 	}
@@ -35,4 +34,22 @@ func cmdControllerCreateResult() {
 
 func cmdControllerCreateStash() {
 	kazeCreateStash()
+}
+
+func cmdControllerDelete() {
+	if client {
+		kazeDelete(clientsapi, name)
+	}
+	if event {
+		kazeDelete(eventsapi, name)
+	}
+	if result {
+		kazeDelete(resultsapi, name)
+	}
+	if aggregate {
+		kazeDelete(aggregatesapi, name)
+	}
+	if stash {
+		kazeDelete(stashesapi, name)
+	}
 }

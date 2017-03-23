@@ -62,15 +62,14 @@ func kazeList(api string, values []string) {
 }
 
 //kazeDelete deletes the specified object
-func kazeDelete(api, value string) {
-	if value == "" {
-		trowError("no name specified.")
+func kazeDelete(api string, values []string) {
+	for _, v := range values {
+		req := new(request)
+		req.Method = "DELETE"
+		req.URL = api + "/" + v
+		res := doSensuAPIRequest(req)
+		resultHandler(res)
 	}
-	req := new(request)
-	req.Method = "DELETE"
-	req.URL = api + "/" + value
-	res := doSensuAPIRequest(req)
-	resultHandler(res)
 }
 
 func kazeCreateClient() {

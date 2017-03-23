@@ -33,6 +33,7 @@ var (
 	stash     bool
 	name      stringArray
 	file      string
+	all       bool
 	// createClient command specific
 	clientAddress       string
 	clientSubscriptions stringArray
@@ -49,6 +50,7 @@ var (
 	silenceClear        bool
 	silenceList         bool
 	silenceSubscription bool
+	silenceCheckName    string
 	// check & resolve command specific
 	checkName string
 	checkAll  bool
@@ -82,7 +84,7 @@ func main() {
 	// createClient subcommand
 	createClientCmd := flag.NewFlagSet("create-client", flag.ExitOnError)
 	// createClient flags
-	createClientCmd.StringVar(&file, "file, f", "", "a valid json file for creation of objects, for bulk operations. if specified it will override all other arguments")
+	createClientCmd.StringVar(&file, "file", "", "a valid json file for creation of objects, for bulk operations. if specified it will override all other arguments")
 	createClientCmd.Var(&name, "name", "name of client to create")
 	createClientCmd.StringVar(&clientAddress, "address", "", "address of the client to create")
 	createClientCmd.Var(&clientSubscriptions, "subscriptions", "subscriptions of the client to create, comma sperated")
@@ -91,7 +93,7 @@ func main() {
 	// createResult subcommand
 	createResultCmd := flag.NewFlagSet("create-result", flag.ExitOnError)
 	// createClient flags
-	createResultCmd.StringVar(&file, "file, f", "", "a valid json file for creation of objects, for bulk operations. if specified it will override all other arguments")
+	createResultCmd.StringVar(&file, "file", "", "a valid json file for creation of objects, for bulk operations. if specified it will override all other arguments")
 	createResultCmd.Var(&name, "name", "name of the result check to create")
 	createResultCmd.StringVar(&resultSource, "source", "", "source of the result")
 	createResultCmd.StringVar(&resultOutput, "output", "", "output of the result")
@@ -100,7 +102,7 @@ func main() {
 	// createResult subcommand
 	createStashCmd := flag.NewFlagSet("create-stash", flag.ExitOnError)
 	// createClient flags
-	createStashCmd.StringVar(&file, "file, f", "", "a valid json file for creation of objects, for bulk operations. if specified it will override all other arguments")
+	createStashCmd.StringVar(&file, "file", "", "a valid json file for creation of objects, for bulk operations. if specified it will override all other arguments")
 	createStashCmd.StringVar(&stashPath, "path", "", "path of the stash to create/update")
 	createStashCmd.StringVar(&stashContent, "content", "", "content of the stash, json formatted")
 	createStashCmd.IntVar(&stashExpire, "expire", -1, "TTL of the stash in seconds")
@@ -122,14 +124,16 @@ func main() {
 	silenceCmd.BoolVar(&silenceList, "list", false, "use to list silenced entr(y(ies)")
 	silenceCmd.BoolVar(&client, "client", false, "use to target client(s)")
 	silenceCmd.BoolVar(&silenceSubscription, "subscription", false, "use to target subscription(s)")
+	silenceCmd.StringVar(&silenceCheckName, "check-name", "", "specify the name of the check you want to silence")
 	silenceCmd.Var(&name, "name", "specify the name(s) of the client(s) or subscription(s)")
+	silenceCmd.BoolVar(&all, "all", false, "use to target all silenced entries")
 
 	//check subcommand
 	checkCmd := flag.NewFlagSet("check", flag.ExitOnError)
 	//check flags
 	checkCmd.Var(&name, "client-name", "specify the name of the client")
 	checkCmd.StringVar(&checkName, "check-name", "", "specify the name of the check")
-	checkCmd.BoolVar(&checkAll, "all", false, "use to target all checks")
+	checkCmd.BoolVar(&all, "all", false, "use to target all checks")
 	checkCmd.BoolVar(&result, "result", false, "use to get the result back from the requested check")
 
 	//resolve subcommand
@@ -137,7 +141,7 @@ func main() {
 	//resolve flags
 	resolveCmd.Var(&name, "client-name", "specify the name of the client")
 	resolveCmd.StringVar(&checkName, "check-name", "", "specify the name of the check")
-	resolveCmd.BoolVar(&checkAll, "all", false, "use to target all events")
+	resolveCmd.BoolVar(&all, "all", false, "use to target all events")
 
 	//switch on subcommand
 	switch os.Args[1] {
@@ -206,4 +210,24 @@ func main() {
 			cmdControllerCreateStash()
 		}
 	}
+
+	if deleteCmd.Parsed() {
+		if deleteCmd.NFlag() < 1 {
+			usagePrint()
+			deleteCmd.PrintDefaults()
+		}
+		if deleteCmd.NFlag() <= 2 {
+			if deleteCmd.NFlag() == 2 && len(name) == 0 {
+				trowError("no name specified or too many arguments given. Only select one type ( e.g. --client ) or specify a name with --name")
+			}
+			cmdControllerDelete()
+		} else {
+			trowError("too many arguments given, expecting 2 or less.")
+		}
+	}
+
+	if silenceCmd.Parsed() {
+
+	}
+
 }
