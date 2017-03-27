@@ -1,6 +1,10 @@
 package main
 
-import "encoding/json"
+import (
+	"encoding/json"
+	"fmt"
+	"os"
+)
 
 // Bulk struct used for bulk client creation of clients
 type Bulk struct {
@@ -9,7 +13,7 @@ type Bulk struct {
 	Result []Result `json:"Results"`
 }
 
-// Client struct used in
+// Client struct
 type Client struct {
 	Name          string   `json:"name"`
 	Address       string   `json:"address"`
@@ -30,6 +34,14 @@ type Result struct {
 	Name   string `json:"name"`
 	Output string `json:"output"`
 	Status int    `json:"status"`
+}
+
+// Clear struct
+type Clear struct {
+	Subscription string
+	Check        string
+	Client       string
+	ID           string
 }
 
 //kazeList lists all return values or a single value
@@ -80,7 +92,7 @@ func kazeCreateClient() {
 			if err != nil {
 				handleError(err)
 			}
-			postPayload(payload)
+			postPayload(clientsapi, payload)
 		}
 	} else {
 		str := &Client{
@@ -93,7 +105,7 @@ func kazeCreateClient() {
 		if err != nil {
 			handleError(err)
 		}
-		postPayload(payload)
+		postPayload(clientsapi, payload)
 	}
 }
 
@@ -105,7 +117,7 @@ func kazeCreateResult() {
 			if err != nil {
 				handleError(err)
 			}
-			postPayload(payload)
+			postPayload(resultsapi, payload)
 		}
 	} else {
 		str := &Result{
@@ -118,7 +130,7 @@ func kazeCreateResult() {
 		if err != nil {
 			handleError(err)
 		}
-		postPayload(payload)
+		postPayload(resultsapi, payload)
 	}
 }
 
@@ -130,7 +142,7 @@ func kazeCreateStash() {
 			if err != nil {
 				handleError(err)
 			}
-			postPayload(payload)
+			postPayload(stashesapi, payload)
 		}
 	} else {
 		str := &Stash{
@@ -142,6 +154,62 @@ func kazeCreateStash() {
 		if err != nil {
 			handleError(err)
 		}
-		postPayload(payload)
+		postPayload(stashesapi, payload)
 	}
+}
+
+func kazeClear(values []string) {
+	if client {
+		for _, v := range values {
+			str := &Clear{
+				Client: v,
+				Check:  silenceCheckName,
+			}
+			payload, err := json.Marshal(str)
+			if err != nil {
+				handleError(err)
+			}
+			postPayload(silencedapiclear, payload)
+		}
+	}
+	if silenceSubscription {
+		for _, v := range values {
+			str := &Clear{
+				Subscription: v,
+				Check:        silenceCheckName,
+			}
+			payload, err := json.Marshal(str)
+			if err != nil {
+				handleError(err)
+			}
+			postPayload(silencedapiclear, payload)
+		}
+	}
+	if all {
+		type ID []struct {
+			ID string `json:"id"`
+		}
+		var id ID
+		req := new(request)
+		req.Method = "GET"
+		req.URL = silencedapi
+		res := doSensuAPIRequest(req)
+		if string(res) == "" {
+			fmt.Print("no silenced entries to be cleared.")
+			os.Exit(0)
+		}
+		json.Unmarshal(res, &id)
+
+		for _, v := range id {
+			str := &Clear{
+				ID: v.ID,
+			}
+			payload, err := json.Marshal(str)
+			if err != nil {
+				handleError(err)
+			}
+			postPayload(silencedapiclear, payload)
+		}
+	}
+	fmt.Print("cleared all silenced entries.")
 }

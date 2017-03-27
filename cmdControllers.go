@@ -53,3 +53,14 @@ func cmdControllerDelete() {
 		kazeDelete(stashesapi, name)
 	}
 }
+
+func cmdControllerSilence() {
+	if silenceList {
+		kazeList(silencedapi, name)
+	}
+	if silenceClear {
+		if client {
+			kazeClear(name)
+		}
+	}
+}

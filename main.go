@@ -12,16 +12,17 @@ var (
 	config = Cfg()
 
 	// api endpoints
-	apibase       = "http://" + config.Sensu + ":" + config.Port
-	clientsapi    = apibase + "/clients"
-	checksapi     = apibase + "/checks"
-	resultsapi    = apibase + "/results"
-	aggregatesapi = apibase + "/aggregates"
-	eventsapi     = apibase + "/events"
-	silencedapi   = apibase + "/silenced"
-	stashesapi    = apibase + "/stashes"
-	healthapi     = apibase + "/health"
-	infoapi       = apibase + "/info"
+	apibase          = "http://" + config.Sensu + ":" + config.Port
+	clientsapi       = apibase + "/clients"
+	checksapi        = apibase + "/checks"
+	resultsapi       = apibase + "/results"
+	aggregatesapi    = apibase + "/aggregates"
+	eventsapi        = apibase + "/events"
+	silencedapi      = apibase + "/silenced"
+	silencedapiclear = apibase + "/silenced/clear"
+	stashesapi       = apibase + "/stashes"
+	healthapi        = apibase + "/health"
+	infoapi          = apibase + "/info"
 
 	// generic
 	client    bool
@@ -227,7 +228,12 @@ func main() {
 	}
 
 	if silenceCmd.Parsed() {
-
+		if silenceCmd.NFlag() < 1 {
+			usagePrint()
+			silenceCmd.PrintDefaults()
+		}
+		if silenceCmd.NFlag() >= 1 {
+			cmdControllerSilence()
+		}
 	}
-
 }

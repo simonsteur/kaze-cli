@@ -55,10 +55,10 @@ func resultHandler(res []byte) {
 	fmt.Printf(result)
 }
 
-func postPayload(payload []byte) {
+func postPayload(api string, payload []byte) {
 	req := new(request)
 	req.Method = "POST"
-	req.URL = clientsapi
+	req.URL = api
 	req.Payload = payload
 	res := doSensuAPIRequest(req)
 	resultHandler(res)
