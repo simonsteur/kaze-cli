@@ -15,6 +15,7 @@ var (
 	apibase          = "http://" + config.Sensu + ":" + config.Port
 	clientsapi       = apibase + "/clients"
 	checksapi        = apibase + "/checks"
+	requestapi       = apibase + "/request"
 	resultsapi       = apibase + "/results"
 	aggregatesapi    = apibase + "/aggregates"
 	eventsapi        = apibase + "/events"
@@ -57,8 +58,8 @@ var (
 	silenceReason          string
 	silenceCreator         string
 	// check & resolve command specific
-	checkName string
-	checkAll  bool
+	checkTarget stringArray
+	checkAll    bool
 )
 
 type stringArray []string
@@ -147,16 +148,16 @@ func main() {
 	//check subcommand
 	checkCmd := flag.NewFlagSet("check", flag.ExitOnError)
 	//check flags
-	checkCmd.Var(&name, "client-name", "specify the name of the client")
-	checkCmd.StringVar(&checkName, "check-name", "", "specify the name of the check")
-	checkCmd.BoolVar(&all, "all", false, "use to target all checks")
+	checkCmd.Var(&checkTarget, "target", "specify a target (client or subscription). if not specfied the check will target its default subscribers")
+	checkCmd.Var(&name, "name", "specify the name of the check")
+	checkCmd.BoolVar(&all, "all", false, "use to target all checks, overrides other flags")
 	checkCmd.BoolVar(&result, "result", false, "use to get the result back from the requested check")
 
 	//resolve subcommand
-	resolveCmd := flag.NewFlagSet("check", flag.ExitOnError)
+	resolveCmd := flag.NewFlagSet("resolve", flag.ExitOnError)
 	//resolve flags
 	resolveCmd.Var(&name, "client-name", "specify the name of the client")
-	resolveCmd.StringVar(&checkName, "check-name", "", "specify the name of the check")
+	//resolveCmd.StringVar(&checkName, "check-name", "", "specify the name of the check")
 	resolveCmd.BoolVar(&all, "all", false, "use to target all events")
 
 	//switch on subcommand
@@ -248,7 +249,7 @@ func main() {
 			silenceCmd.PrintDefaults()
 		}
 		if silenceCmd.NFlag() >= 1 {
-			if client & silenceSubscription {
+			if client && silenceSubscription {
 				trowError("cannot combine -client and -subscription flag.")
 			}
 			if len(name) != 0 && client || silenceSubscription {
@@ -275,6 +276,19 @@ func main() {
 			if all {
 				cmdControllerSilenceClear()
 			}
+		}
+	}
+
+	if checkCmd.Parsed() {
+		if checkCmd.NFlag() < 1 {
+			usagePrint()
+			checkCmd.PrintDefaults()
+		}
+		if checkCmd.NFlag() >= 1 {
+			if len(name) == 0 {
+				trowError("flag -name is required.")
+			}
+			cmdControllerCheck()
 		}
 	}
 }

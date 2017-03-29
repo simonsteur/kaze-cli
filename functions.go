@@ -55,6 +55,12 @@ type Silence struct {
 	Reason          string
 }
 
+// CheckRequest struct
+type CheckRequest struct {
+	Subscribers []string
+	check       string
+}
+
 //kazeList lists all return values or a single value
 func kazeList(api string, values []string) {
 	req := new(request)
@@ -236,6 +242,24 @@ func kazeClear(values []string) {
 				handleError(err)
 			}
 			postPayload(silencedapiclear, payload)
+		}
+	}
+}
+
+func kazeCheck(values []string) {
+	if all {
+
+	} else {
+		for _, v := range values {
+			s := &CheckRequest{
+				check:       v,
+				Subscribers: checkTarget,
+			}
+			payload, err := json.Marshal(s)
+			if err != nil {
+				handleError(err)
+			}
+			postPayload(requestapi, payload)
 		}
 	}
 }

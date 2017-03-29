@@ -60,3 +60,7 @@ func cmdControllerSilence() {
 func cmdControllerSilenceClear() {
 	kazeClear(name)
 }
+
+func cmdControllerCheck() {
+	kazeCheck(name)
+}
