@@ -59,8 +59,6 @@ func cmdControllerSilence() {
 		kazeList(silencedapi, name)
 	}
 	if silenceClear {
-		if client {
-			kazeClear(name)
-		}
+		kazeClear(name)
 	}
 }
