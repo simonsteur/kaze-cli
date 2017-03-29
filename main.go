@@ -48,10 +48,14 @@ var (
 	stashPath    string
 	stashExpire  int
 	// silence command specific
-	silenceClear        bool
-	silenceList         bool
-	silenceSubscription bool
-	silenceCheckName    string
+	silenceClear           bool
+	silenceList            bool
+	silenceSubscription    bool
+	silenceCheckName       string
+	silenceExpire          int
+	silenceExpireOnResolve bool
+	silenceReason          string
+	silenceCreator         string
 	// check & resolve command specific
 	checkName string
 	checkAll  bool
@@ -121,13 +125,24 @@ func main() {
 	// silence subcommand
 	silenceCmd := flag.NewFlagSet("silence", flag.ExitOnError)
 	// silence flags
-	silenceCmd.BoolVar(&silenceClear, "clear", false, "use to clear silenced entr(y)(ies)")
-	silenceCmd.BoolVar(&silenceList, "list", false, "use to list silenced entr(y(ies)")
 	silenceCmd.BoolVar(&client, "client", false, "use to target client(s)")
 	silenceCmd.BoolVar(&silenceSubscription, "subscription", false, "use to target subscription(s)")
 	silenceCmd.StringVar(&silenceCheckName, "check-name", "", "specify the name of the check you want to silence")
 	silenceCmd.Var(&name, "name", "specify the name(s) of the client(s) or subscription(s)")
-	silenceCmd.BoolVar(&all, "all", false, "use to target all silenced entries")
+	silenceCmd.BoolVar(&all, "all", false, "use to target all silenced entries. if specified it will override other arguments.")
+	silenceCmd.BoolVar(&silenceExpireOnResolve, "expire-on-resolve", false, "sets the silenced entry to expire once check is resolved")
+	silenceCmd.StringVar(&silenceReason, "reason", "", "specify reason for silencing")
+	silenceCmd.StringVar(&silenceCreator, "creator", "", "specify the creator of the silence entry")
+	silenceCmd.IntVar(&silenceExpire, "expire", 0, "specify when the silence should expire (seconds)")
+
+	// silence-clear subcommand
+	silenceClearCmd := flag.NewFlagSet("silence-clear", flag.ExitOnError)
+	// silence-clear flags
+	silenceClearCmd.BoolVar(&client, "client", false, "use to target client(s)")
+	silenceClearCmd.BoolVar(&silenceSubscription, "subscription", false, "use to target subscription(s)")
+	silenceClearCmd.StringVar(&silenceCheckName, "check-name", "", "specify the name of the check you want to target")
+	silenceClearCmd.Var(&name, "name", "specify the name(s) of the client(s) or subscription(s)")
+	silenceClearCmd.BoolVar(&all, "all", false, "use to target all silenced entries. if specified it will override other arguments.")
 
 	//check subcommand
 	checkCmd := flag.NewFlagSet("check", flag.ExitOnError)
@@ -219,7 +234,7 @@ func main() {
 		}
 		if deleteCmd.NFlag() <= 2 {
 			if deleteCmd.NFlag() == 2 && len(name) == 0 {
-				trowError("no name specified or too many arguments given. Only select one type ( e.g. --client ) or specify a name with --name")
+				trowError("no name specified or too many arguments given. Only select one type ( e.g. -client ) or specify a name with -name")
 			}
 			cmdControllerDelete()
 		} else {
@@ -233,7 +248,33 @@ func main() {
 			silenceCmd.PrintDefaults()
 		}
 		if silenceCmd.NFlag() >= 1 {
-			cmdControllerSilence()
+			if client & silenceSubscription {
+				trowError("cannot combine -client and -subscription flag.")
+			}
+			if len(name) != 0 && client || silenceSubscription {
+				cmdControllerSilenceClear()
+			}
+			if all {
+				cmdControllerSilenceClear()
+			}
+		}
+	}
+
+	if silenceClearCmd.Parsed() {
+		if silenceClearCmd.NFlag() < 1 {
+			usagePrint()
+			silenceClearCmd.PrintDefaults()
+		}
+		if silenceClearCmd.NFlag() >= 1 {
+			if client && silenceSubscription {
+				trowError("cannot combine -client and -subscription flag.")
+			}
+			if len(name) != 0 && client || silenceSubscription {
+				cmdControllerSilenceClear()
+			}
+			if all {
+				cmdControllerSilenceClear()
+			}
 		}
 	}
 }

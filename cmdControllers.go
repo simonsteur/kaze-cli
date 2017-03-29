@@ -55,10 +55,8 @@ func cmdControllerDelete() {
 }
 
 func cmdControllerSilence() {
-	if silenceList {
-		kazeList(silencedapi, name)
-	}
-	if silenceClear {
-		kazeClear(name)
-	}
+}
+
+func cmdControllerSilenceClear() {
+	kazeClear(name)
 }
