@@ -174,6 +174,8 @@ func main() {
 		deleteCmd.Parse(os.Args[2:])
 	case "silence":
 		silenceCmd.Parse(os.Args[2:])
+	case "silence-clear":
+		silenceClearCmd.Parse(os.Args[2:])
 	case "check":
 		checkCmd.Parse(os.Args[2:])
 	case "resolve":
@@ -253,10 +255,10 @@ func main() {
 				trowError("cannot combine -client and -subscription flag.")
 			}
 			if len(name) != 0 && client || silenceSubscription {
-				cmdControllerSilenceClear()
+				cmdControllerSilence()
 			}
 			if all {
-				cmdControllerSilenceClear()
+				cmdControllerSilence()
 			}
 		}
 	}

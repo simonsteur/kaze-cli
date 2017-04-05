@@ -55,6 +55,13 @@ func cmdControllerDelete() {
 }
 
 func cmdControllerSilence() {
+	if client {
+		kazeSilence(name, clientsapi)
+	}
+
+	if client {
+		kazeSilence(name, clientsapi)
+	}
 }
 
 func cmdControllerSilenceClear() {

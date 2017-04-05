@@ -175,7 +175,44 @@ func kazeCreateStash() {
 	}
 }
 
-func kazeSilence(values []string) {
+func kazeSilence(values []string, api string) {
+	if all {
+		type clientname []struct {
+			Name string `json:"name"`
+		}
+		var c clientname
+		req := new(request)
+		req.Method = "GET"
+		req.URL = api
+		res := doSensuAPIRequest(req)
+		if string(res) == "" {
+			fmt.Print("no clients found.")
+			os.Exit(0)
+		}
+		json.Unmarshal(res, &c)
+
+		for _, v := range c {
+			s := &Silence{
+				Check:   v.Name,
+				Reason:  silenceReason,
+				Creator: silenceCreator,
+			}
+			if client {
+				s.Client = v.Name
+			}
+			if silenceSubscription {
+				s.Subscription = v.Name
+			}
+
+			payload, err := json.Marshal(s)
+			if err != nil {
+				handleError(err)
+			}
+			postPayload(silencedapi, payload)
+		}
+
+	}
+
 	for _, v := range values {
 		s := &Silence{
 			Check:   silenceCheckName,
