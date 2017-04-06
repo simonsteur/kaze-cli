@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"fmt"
 	"io/ioutil"
 	"net/http"
 )
@@ -25,8 +26,8 @@ func doSensuAPIRequest(request *request) []byte {
 	}
 	// read and close response
 	body, _ := ioutil.ReadAll(res.Body)
+	fmt.Print(res.StatusCode)
 	defer res.Body.Close()
-
 	result := body
 	// return result
 	return result

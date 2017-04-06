@@ -112,8 +112,9 @@ func kazeCreateClient() {
 			postPayload(clientsapi, payload)
 		}
 	} else {
+		fmt.Print(name[0])
 		s := &Client{
-			Name:          name[1],
+			Name:          name[0],
 			Address:       clientAddress,
 			Subscriptions: clientSubscriptions,
 			Environment:   clientEnvironment,

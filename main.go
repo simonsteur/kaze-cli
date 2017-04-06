@@ -203,7 +203,7 @@ func main() {
 	if createClientCmd.Parsed() {
 		if createClientCmd.NFlag() < 1 {
 			usagePrint()
-			listCmd.PrintDefaults()
+			createClientCmd.PrintDefaults()
 		}
 		if createClientCmd.NFlag() >= 1 {
 			cmdControllerCreateClient()
