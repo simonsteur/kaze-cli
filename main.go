@@ -205,7 +205,13 @@ func main() {
 			usagePrint()
 			createClientCmd.PrintDefaults()
 		}
-		if createClientCmd.NFlag() >= 1 {
+		if createClientCmd.NFlag() == 1 && file == "" {
+			trowError("not enough arguments given, if -file flag is not used then 4 arguments are expected.")
+		}
+		if createClientCmd.NFlag() == 1 && file != "" {
+			cmdControllerCreateClient()
+		}
+		if createClientCmd.NFlag() == 4 {
 			cmdControllerCreateClient()
 		}
 	}

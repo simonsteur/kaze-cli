@@ -15,50 +15,55 @@ type Bulk struct {
 
 // Client struct
 type Client struct {
-	Name          string   `json:"name"`
-	Address       string   `json:"address"`
-	Subscriptions []string `json:"subscriptions"`
-	Environment   string   `json:"environment"`
+	Name          string   `json:"name,omitempty"`
+	Address       string   `json:"address,omitempty"`
+	Subscriptions []string `json:"subscriptions,omitempty"`
+	Environment   string   `json:"environment,omitempty"`
 }
 
 // Stash struct
 type Stash struct {
-	Path    string      `json:"path"`
-	Content interface{} `json:"content"`
-	Expire  int         `json:"expire"`
+	Path    string      `json:"path,omitempty"`
+	Content interface{} `json:"content,omitempty"`
+	Expire  int         `json:"expire,omitempty"`
 }
 
 // Result Struct
 type Result struct {
-	Source string `json:"source"`
-	Name   string `json:"name"`
-	Output string `json:"output"`
-	Status int    `json:"status"`
+	Source string `json:"source,omitempty"`
+	Name   string `json:"name,omitempty"`
+	Output string `json:"output,omitempty"`
+	Status int    `json:"status,omitempty"`
 }
 
 // Clear struct
 type Clear struct {
-	Subscription string
-	Check        string
-	Client       string
-	ID           string
+	Subscription string `json:"subscription,omitempty"`
+	Check        string `json:"check,omitempty"`
+	Client       string `json:"client,omitempty"`
+	ID           string `json:"id,omitempty"`
 }
 
 // Silence struct
 type Silence struct {
-	Subscription    string
-	Check           string
-	Client          string
-	Creator         string
-	ExpireOnResolve bool `json:"expire_on_resolve"`
-	Expire          int
-	Reason          string
+	Subscription    string `json:"subscription,omitempty"`
+	Check           string `json:"check,omitempty"`
+	Client          string `json:"client,omitempty"`
+	Creator         string `json:"ceator,omitempty"`
+	ExpireOnResolve bool   `json:"expire_on_resolve,omitempty"`
+	Expire          int    `json:"expire,omitempty"`
+	Reason          string `json:"reason,omitempty"`
 }
 
 // CheckRequest struct
 type CheckRequest struct {
-	Subscribers []string
-	check       string
+	Subscribers []string `json:"subscribers,omitempty"`
+	Check       string   `json:"check,omitempty"`
+}
+
+//ID struct
+type ID []struct {
+	ID string `json:"id,omitempty"`
 }
 
 //kazeList lists all return values or a single value
@@ -112,7 +117,6 @@ func kazeCreateClient() {
 			postPayload(clientsapi, payload)
 		}
 	} else {
-		fmt.Print(name[0])
 		s := &Client{
 			Name:          name[0],
 			Address:       clientAddress,
@@ -139,7 +143,7 @@ func kazeCreateResult() {
 		}
 	} else {
 		s := &Result{
-			Name:   name[1],
+			Name:   name[0],
 			Source: resultSource,
 			Output: resultOutput,
 			Status: resultStatus,
@@ -238,9 +242,6 @@ func kazeSilence(values []string, api string) {
 func kazeClear(values []string) {
 
 	if all {
-		type ID []struct {
-			ID string `json:"id"`
-		}
 		var id ID
 		req := new(request)
 		req.Method = "GET"
@@ -290,7 +291,7 @@ func kazeCheck(values []string) {
 	} else {
 		for _, v := range values {
 			s := &CheckRequest{
-				check:       v,
+				Check:       v,
 				Subscribers: checkTarget,
 			}
 			payload, err := json.Marshal(s)

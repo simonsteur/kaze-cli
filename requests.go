@@ -2,7 +2,6 @@ package main
 
 import (
 	"bytes"
-	"fmt"
 	"io/ioutil"
 	"net/http"
 )
@@ -26,7 +25,12 @@ func doSensuAPIRequest(request *request) []byte {
 	}
 	// read and close response
 	body, _ := ioutil.ReadAll(res.Body)
-	fmt.Print(res.StatusCode)
+	if res.StatusCode == 400 {
+		trowError("400 (Bad Request)")
+	}
+	if res.StatusCode == 500 {
+		trowError("500 (Internal Server Error)")
+	}
 	defer res.Body.Close()
 	result := body
 	// return result
