@@ -45,9 +45,8 @@ var (
 	resultOutput string
 	resultStatus int
 	// create stash command specific
-	stashContent string
-	stashPath    string
-	stashExpire  int
+	stashPath   string
+	stashExpire int
 	// silence command specific
 	silenceClear           bool
 	silenceList            bool
@@ -74,6 +73,11 @@ func (array *stringArray) Set(value string) error {
 }
 
 func main() {
+
+	// help subcommand
+	helpCmd := flag.NewFlagSet("help", flag.ExitOnError)
+	// help flags
+	helpCmd.Bool("help", false, "get help on the help command?")
 
 	// list subcommand
 	listCmd := flag.NewFlagSet("list", flag.ExitOnError)
@@ -110,7 +114,6 @@ func main() {
 	// createClient flags
 	createStashCmd.StringVar(&file, "file", "", "a valid json file for creation of objects, for bulk operations. if specified it will override all other arguments")
 	createStashCmd.StringVar(&stashPath, "path", "", "path of the stash to create/update")
-	createStashCmd.StringVar(&stashContent, "content", "", "content of the stash, json formatted")
 	createStashCmd.IntVar(&stashExpire, "expire", -1, "TTL of the stash in seconds")
 
 	// delete subcommand
@@ -160,6 +163,10 @@ func main() {
 	//resolveCmd.StringVar(&checkName, "check-name", "", "specify the name of the check")
 	resolveCmd.BoolVar(&all, "all", false, "use to target all events")
 
+	if len(os.Args) < 2 {
+		help()
+	}
+
 	//switch on subcommand
 	switch os.Args[1] {
 	case "list":
@@ -174,13 +181,16 @@ func main() {
 		deleteCmd.Parse(os.Args[2:])
 	case "silence":
 		silenceCmd.Parse(os.Args[2:])
-	case "silence-clear":
+	case "clear-silence":
 		silenceClearCmd.Parse(os.Args[2:])
 	case "check":
 		checkCmd.Parse(os.Args[2:])
 	case "resolve":
 		resolveCmd.Parse(os.Args[2:])
+	case "help":
+		helpCmd.Parse(os.Args[2:])
 	default:
+		flag.PrintDefaults()
 		os.Exit(1)
 	}
 
@@ -293,10 +303,19 @@ func main() {
 			checkCmd.PrintDefaults()
 		}
 		if checkCmd.NFlag() >= 1 {
-			if len(name) == 0 {
+			if len(name) == 0 && all == false {
 				trowError("flag -name is required.")
 			}
 			cmdControllerCheck()
+		}
+	}
+
+	if helpCmd.Parsed() {
+		if helpCmd.NFlag() < 1 {
+			help()
+		} else {
+			fmt.Printf("We're no strangers to love\nYou know the rules and so do I\nA full commitment's what I'm thinking of\nYou wouldn't get this from any other guy\nI just want to tell you how I'm feeling\nGotta make you understand\n\n")
+			fmt.Printf("Never gonna give you up\nNever gonna let you down\nNever gonna run around and desert you\nNever gonna make you cry\nNever gonna say goodbye\nNever gonna tell a lie and hurt you\n")
 		}
 	}
 }

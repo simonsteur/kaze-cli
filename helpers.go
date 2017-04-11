@@ -15,6 +15,25 @@ func usagePrint() {
 	fmt.Printf("Parameters:\n")
 }
 
+func help() {
+	fmt.Printf("kaze-cli is command line interface tool for sensu operations\n\n")
+	fmt.Printf("Usage:\n")
+	fmt.Print("  kaze [command] [options]\n\n")
+	fmt.Printf("Commands:\n")
+	fmt.Print("  list             list objects\n")
+	fmt.Print("  create-client    creates a proxy client\n")
+	fmt.Print("  create-result    creates a check result\n")
+	fmt.Print("  create-stash     creates a stash\n")
+	fmt.Print("  delete           delete clients, results, stashes\n")
+	fmt.Print("  clear-silence    clear a silence entry\n")
+	fmt.Print("  check            request to schedule a check\n")
+	fmt.Print("  resolve          resolve a check result\n")
+	fmt.Print("  help             print help text\n\n\n")
+	fmt.Print("for help use: kaze [command] -help")
+	fmt.Print("\n\n")
+	os.Exit(1)
+}
+
 //pretty JSON turns json input into a more readably and pretty json string
 func prettyJSON(input string) string {
 	var output bytes.Buffer

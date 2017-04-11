@@ -44,6 +44,11 @@ type Clear struct {
 	ID           string `json:"id,omitempty"`
 }
 
+// ID struct
+type ID []struct {
+	ID string `json:"id,omitemtpy"`
+}
+
 // Silence struct
 type Silence struct {
 	Subscription    string `json:"subscription,omitempty"`
@@ -61,9 +66,10 @@ type CheckRequest struct {
 	Check       string   `json:"check,omitempty"`
 }
 
-//ID struct
-type ID []struct {
-	ID string `json:"id,omitempty"`
+// Checks struct
+type Checks []struct {
+	Subscribers []string `json:"subscribers,omitempty"`
+	Check       string   `json:"name,omitempty"`
 }
 
 //kazeList lists all return values or a single value
@@ -157,27 +163,16 @@ func kazeCreateResult() {
 }
 
 func kazeCreateStash() {
-	if file != "" {
-		bulk := readFileBulk(file)
-		for _, v := range bulk.Stash {
-			payload, err := json.Marshal(v)
-			if err != nil {
-				handleError(err)
-			}
-			postPayload(stashesapi, payload)
-		}
-	} else {
-		s := &Stash{
-			Path:    stashPath,
-			Content: stashContent,
-			Expire:  stashExpire,
-		}
-		payload, err := json.Marshal(s)
+
+	bulk := readFileBulk(file)
+	for _, v := range bulk.Stash {
+		payload, err := json.Marshal(v)
 		if err != nil {
 			handleError(err)
 		}
 		postPayload(stashesapi, payload)
 	}
+
 }
 
 func kazeSilence(values []string, api string) {
@@ -287,7 +282,27 @@ func kazeClear(values []string) {
 
 func kazeCheck(values []string) {
 	if all {
+		var c Checks
+		req := new(request)
+		req.Method = "GET"
+		req.URL = checksapi
+		res := doSensuAPIRequest(req)
+		if string(res) == "" {
+			trowError("something went wrong, no results returned.")
+		}
+		json.Unmarshal(res, &c)
 
+		for _, v := range c {
+			s := &CheckRequest{
+				Check:       v.Check,
+				Subscribers: v.Subscribers,
+			}
+			payload, err := json.Marshal(s)
+			if err != nil {
+				handleError(err)
+			}
+			postPayload(requestapi, payload)
+		}
 	} else {
 		for _, v := range values {
 			s := &CheckRequest{
