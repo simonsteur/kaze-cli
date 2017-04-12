@@ -38,29 +38,25 @@ func cmdControllerCreateStash() {
 
 func cmdControllerDelete() {
 	if client {
-		kazeDelete(clientsapi, name)
+		kazeDelete(clientsapi, name, deleteCheckName)
 	}
 	if event {
-		kazeDelete(eventsapi, name)
+		kazeDelete(eventsapi, name, deleteCheckName)
 	}
 	if result {
-		kazeDelete(resultsapi, name)
+		kazeDelete(resultsapi, name, deleteCheckName)
 	}
 	if aggregate {
-		kazeDelete(aggregatesapi, name)
+		kazeDelete(aggregatesapi, name, deleteCheckName)
 	}
 	if stash {
-		kazeDelete(stashesapi, name)
+		kazeDelete(stashesapi, name, deleteCheckName)
 	}
 }
 
 func cmdControllerSilence() {
 	if client {
-		kazeSilence(name, clientsapi)
-	}
-
-	if client {
-		kazeSilence(name, clientsapi)
+		kazeSilence(name)
 	}
 }
 

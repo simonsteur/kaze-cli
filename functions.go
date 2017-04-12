@@ -102,13 +102,23 @@ func kazeList(api string, values []string) {
 }
 
 //kazeDelete deletes the specified object
-func kazeDelete(api string, values []string) {
-	for _, v := range values {
-		req := new(request)
-		req.Method = "DELETE"
-		req.URL = api + "/" + v
-		res := doSensuAPIRequest(req)
-		resultHandler(res)
+func kazeDelete(api string, values []string, checkname string) {
+	if result {
+		for _, v := range values {
+			req := new(request)
+			req.Method = "DELETE"
+			req.URL = api + "/" + v + "/" + checkname
+			doSensuAPIRequest(req)
+			fmt.Print("deleted result")
+		}
+	} else {
+		for _, v := range values {
+			req := new(request)
+			req.Method = "DELETE"
+			req.URL = api + "/" + v
+			res := doSensuAPIRequest(req)
+			resultHandler(res)
+		}
 	}
 }
 
@@ -175,7 +185,7 @@ func kazeCreateStash() {
 
 }
 
-func kazeSilence(values []string, api string) {
+func kazeSilence(values []string) {
 	if all {
 		type clientname []struct {
 			Name string `json:"name"`
@@ -183,7 +193,7 @@ func kazeSilence(values []string, api string) {
 		var c clientname
 		req := new(request)
 		req.Method = "GET"
-		req.URL = api
+		req.URL = clientsapi
 		res := doSensuAPIRequest(req)
 		if string(res) == "" {
 			fmt.Print("no clients found.")

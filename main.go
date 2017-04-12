@@ -40,6 +40,8 @@ var (
 	clientAddress       string
 	clientSubscriptions stringArray
 	clientEnvironment   string
+	// delete command specific
+	deleteCheckName string
 	// createResult command specific
 	resultSource string
 	resultOutput string
@@ -125,6 +127,7 @@ func main() {
 	deleteCmd.BoolVar(&aggregate, "aggregate", false, "use to delete aggregate(s)")
 	deleteCmd.BoolVar(&stash, "stash", false, "use to delete stash(es)")
 	deleteCmd.Var(&name, "name", "specify the name(s) of the object(s) to delete")
+	deleteCmd.StringVar(&deleteCheckName, "check-name", "", "use for specifying the check when deleting a result entry. In this scenario also use the -name flag to specify the client to delete the result from")
 
 	// silence subcommand
 	silenceCmd := flag.NewFlagSet("silence", flag.ExitOnError)
@@ -251,13 +254,27 @@ func main() {
 			usagePrint()
 			deleteCmd.PrintDefaults()
 		}
-		if deleteCmd.NFlag() <= 2 {
-			if deleteCmd.NFlag() == 2 && len(name) == 0 {
-				trowError("no name specified or too many arguments given. Only select one type ( e.g. -client ) or specify a name with -name")
+		if deleteCmd.NFlag() <= 3 {
+			if deleteCmd.NFlag() == 3 && len(name) == 0 && deleteCheckName == "" {
+				trowError("no name or check-name specified or too many arguments given. Only select one type ( e.g. -client ) or specify a name with -name. incase of deleting a result use 3 arguments ( e.g. -result, -name & -check-name.")
+			} else {
+				cmdControllerDelete()
 			}
-			cmdControllerDelete()
-		} else {
-			trowError("too many arguments given, expecting 2 or less.")
+			if deleteCmd.NFlag() == 2 && len(name) == 0 {
+				trowError("no name specified or too many arguments given. Only select one type ( e.g. -client ) or specify a name with -name. incase of deleting a result use 3 arguments ( e.g. -result, -name & -check-name.")
+			}
+			if deleteCmd.NFlag() == 2 && result {
+				trowError("incase of deleting a result use 3 arguments (-result, -name and -check-name).")
+			}
+			if deleteCmd.NFlag() == 2 && len(name) != 0 {
+				cmdControllerDelete()
+			}
+			if deleteCmd.NFlag() == 1 && len(name) == 0 && deleteCheckName == "" {
+				cmdControllerDelete()
+			}
+		}
+		if deleteCmd.NFlag() >= 4 {
+			trowError("too many arguments given, expecting 3 or less.")
 		}
 	}
 

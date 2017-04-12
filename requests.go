@@ -28,6 +28,9 @@ func doSensuAPIRequest(request *request) []byte {
 	if res.StatusCode == 400 {
 		trowError("400 (Bad Request)")
 	}
+	if res.StatusCode == 404 {
+		trowError("404 (Not Found)")
+	}
 	if res.StatusCode == 500 {
 		trowError("500 (Internal Server Error)")
 	}
