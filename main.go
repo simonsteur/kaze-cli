@@ -24,6 +24,7 @@ var (
 	stashesapi       = apibase + "/stashes"
 	healthapi        = apibase + "/health"
 	infoapi          = apibase + "/info"
+	resolveapi       = apibase + "/resolve"
 
 	// generic
 	client    bool
@@ -59,8 +60,9 @@ var (
 	silenceReason          string
 	silenceCreator         string
 	// check & resolve command specific
-	checkTarget stringArray
-	checkAll    bool
+	checkTarget      stringArray
+	checkAll         bool
+	resolveCheckName string
 )
 
 type stringArray []string
@@ -154,7 +156,7 @@ func main() {
 	//check subcommand
 	checkCmd := flag.NewFlagSet("check", flag.ExitOnError)
 	//check flags
-	checkCmd.Var(&checkTarget, "target", "specify a target (client or subscription). if not specfied the check will target its default subscribers")
+	checkCmd.Var(&checkTarget, "target", "specify a target (if targeting a client specify as 'client:<name>'). if not specfied the check will target its default subscribers")
 	checkCmd.Var(&name, "name", "specify the name of the check")
 	checkCmd.BoolVar(&all, "all", false, "use to target all checks, overrides other flags")
 	checkCmd.BoolVar(&result, "result", false, "use to get the result back from the requested check")
@@ -163,6 +165,7 @@ func main() {
 	resolveCmd := flag.NewFlagSet("resolve", flag.ExitOnError)
 	//resolve flags
 	resolveCmd.Var(&name, "client-name", "specify the name of the client")
+	resolveCmd.StringVar(&resolveCheckName, "check-name", "", "specify the name of the check you want to resolve")
 	//resolveCmd.StringVar(&checkName, "check-name", "", "specify the name of the check")
 	resolveCmd.BoolVar(&all, "all", false, "use to target all events")
 
@@ -325,6 +328,22 @@ func main() {
 				trowError("flag -name is required.")
 			}
 			cmdControllerCheck()
+		}
+	}
+
+	if resolveCmd.Parsed() {
+		if checkCmd.NFlag() < 1 {
+			usagePrint()
+			resolveCmd.PrintDefaults()
+		}
+		if resolveCmd.NFlag() > 2 {
+			trowError("too many arguments given, expecting 3 or less.")
+		}
+		if resolveCmd.NFlag() == 2 && len(name) != 0 && resolveCheckName != "" {
+			cmdControllerResolve()
+		}
+		if resolveCmd.NFlag() == 1 && all {
+			cmdControllerResolve()
 		}
 	}
 

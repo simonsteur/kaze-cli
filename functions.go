@@ -72,6 +72,22 @@ type Checks []struct {
 	Check       string   `json:"name,omitempty"`
 }
 
+// Events struct
+type Events []struct {
+	Client struct {
+		Name string `json:"name,omitempty"`
+	}
+	Check struct {
+		Name string `json:"name,omitempty"`
+	}
+}
+
+// Resolve struct
+type Resolve struct {
+	Client string `json:"client,omitempty"`
+	Check  string `json:"check,omitempty"`
+}
+
 //kazeList lists all return values or a single value
 func kazeList(api string, values []string) {
 	req := new(request)
@@ -316,6 +332,45 @@ func kazeCheck(values []string) {
 				handleError(err)
 			}
 			postPayload(requestapi, payload)
+		}
+	}
+}
+
+func kazeResolve(values []string) {
+	if all {
+		var e Events
+		req := new(request)
+		req.Method = "GET"
+		req.URL = eventsapi
+		res, _ := doSensuAPIRequest(req)
+		if string(res) == "" {
+			trowError("something went wrong, no events to resolve returned.")
+		}
+		json.Unmarshal(res, &e)
+
+		for _, v := range e {
+			s := &Resolve{
+				Client: v.Client.Name,
+				Check:  v.Check.Name,
+			}
+			payload, err := json.Marshal(s)
+			if err != nil {
+				handleError(err)
+			}
+			postPayload(resolveapi, payload)
+		}
+
+	} else {
+		for _, v := range values {
+			s := &Resolve{
+				Client: v,
+				Check:  resolveCheckName,
+			}
+			payload, err := json.Marshal(s)
+			if err != nil {
+				handleError(err)
+			}
+			postPayload(resolveapi, payload)
 		}
 	}
 }
