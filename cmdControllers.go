@@ -51,6 +51,7 @@ func cmdControllerDelete() {
 	}
 	if stash {
 		kazeDelete(stashesapi, name, deleteCheckName)
+
 	}
 }
 

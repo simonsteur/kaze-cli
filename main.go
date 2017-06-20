@@ -257,8 +257,6 @@ func main() {
 		if deleteCmd.NFlag() <= 3 {
 			if deleteCmd.NFlag() == 3 && len(name) == 0 && deleteCheckName == "" {
 				trowError("no name or check-name specified or too many arguments given. Only select one type ( e.g. -client ) or specify a name with -name. incase of deleting a result use 3 arguments ( e.g. -result, -name & -check-name.")
-			} else {
-				cmdControllerDelete()
 			}
 			if deleteCmd.NFlag() == 2 && len(name) == 0 {
 				trowError("no name specified or too many arguments given. Only select one type ( e.g. -client ) or specify a name with -name. incase of deleting a result use 3 arguments ( e.g. -result, -name & -check-name.")
@@ -270,6 +268,9 @@ func main() {
 				cmdControllerDelete()
 			}
 			if deleteCmd.NFlag() == 1 && len(name) == 0 && deleteCheckName == "" {
+				cmdControllerDelete()
+			}
+			if deleteCmd.NFlag() == 3 && len(name) != 0 && deleteCheckName != "" {
 				cmdControllerDelete()
 			}
 		}
@@ -290,7 +291,7 @@ func main() {
 			if len(name) != 0 && client || silenceSubscription {
 				cmdControllerSilence()
 			}
-			if all {
+			if all && !client && !silenceSubscription {
 				cmdControllerSilence()
 			}
 		}

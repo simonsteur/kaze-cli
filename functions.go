@@ -26,6 +26,7 @@ type Stash struct {
 	Path    string      `json:"path,omitempty"`
 	Content interface{} `json:"content,omitempty"`
 	Expire  int         `json:"expire,omitempty"`
+	Message interface{} `json:"message,omitempty"`
 }
 
 // Result Struct
@@ -40,7 +41,6 @@ type Result struct {
 type Clear struct {
 	Subscription string `json:"subscription,omitempty"`
 	Check        string `json:"check,omitempty"`
-	Client       string `json:"client,omitempty"`
 	ID           string `json:"id,omitempty"`
 }
 
@@ -53,7 +53,7 @@ type ID []struct {
 type Silence struct {
 	Subscription    string `json:"subscription,omitempty"`
 	Check           string `json:"check,omitempty"`
-	Client          string `json:"client,omitempty"`
+	ID              string `json:"id,omitempty"`
 	Creator         string `json:"ceator,omitempty"`
 	ExpireOnResolve bool   `json:"expire_on_resolve,omitempty"`
 	Expire          int    `json:"expire,omitempty"`
@@ -79,7 +79,7 @@ func kazeList(api string, values []string) {
 	if len(values) != 0 {
 		for _, value := range values {
 			req.URL = api + "/" + value
-			res := doSensuAPIRequest(req)
+			res, _ := doSensuAPIRequest(req)
 			if string(res) == "" && value != "" {
 				trowError(value + "not found.")
 			}
@@ -90,7 +90,7 @@ func kazeList(api string, values []string) {
 		}
 	} else {
 		req.URL = api
-		res := doSensuAPIRequest(req)
+		res, _ := doSensuAPIRequest(req)
 		if string(res) == "" && len(values) != 0 {
 			trowError("not found.")
 		}
@@ -103,6 +103,7 @@ func kazeList(api string, values []string) {
 
 //kazeDelete deletes the specified object
 func kazeDelete(api string, values []string, checkname string) {
+	//fmt.Print(values)
 	if result {
 		for _, v := range values {
 			req := new(request)
@@ -116,8 +117,12 @@ func kazeDelete(api string, values []string, checkname string) {
 			req := new(request)
 			req.Method = "DELETE"
 			req.URL = api + "/" + v
-			res := doSensuAPIRequest(req)
-			resultHandler(res)
+			res, statusCode := doSensuAPIRequest(req)
+			if statusCode == 204 {
+				fmt.Print("success")
+			} else {
+				resultHandler(res)
+			}
 		}
 	}
 }
@@ -173,45 +178,54 @@ func kazeCreateResult() {
 }
 
 func kazeCreateStash() {
-
-	bulk := readFileBulk(file)
-	for _, v := range bulk.Stash {
-		payload, err := json.Marshal(v)
-		if err != nil {
-			handleError(err)
-		}
-		postPayload(stashesapi, payload)
-	}
-
+	payload := readFile(file)
+	postPayload(stashesapi, payload)
 }
 
 func kazeSilence(values []string) {
 	if all {
-		type clientname []struct {
-			Name string `json:"name"`
+		type checkname []struct {
+			Check string `json:"check"`
 		}
-		var c clientname
+		var c checkname
 		req := new(request)
 		req.Method = "GET"
-		req.URL = clientsapi
-		res := doSensuAPIRequest(req)
+		req.URL = checksapi
+		res, _ := doSensuAPIRequest(req)
 		if string(res) == "" {
-			fmt.Print("no clients found.")
+			fmt.Print("no checks found.")
 			os.Exit(0)
 		}
 		json.Unmarshal(res, &c)
 
 		for _, v := range c {
 			s := &Silence{
-				Check:   v.Name,
-				Reason:  silenceReason,
-				Creator: silenceCreator,
+				Check:           v.Check,
+				Reason:          silenceReason,
+				Creator:         silenceCreator,
+				Expire:          silenceExpire,
+				ExpireOnResolve: silenceExpireOnResolve,
+			}
+			payload, err := json.Marshal(s)
+			if err != nil {
+				handleError(err)
+			}
+			postPayload(silencedapi, payload)
+		}
+	} else {
+		for _, v := range values {
+			s := &Silence{
+				Check:           silenceCheckName,
+				Reason:          silenceReason,
+				Creator:         silenceCreator,
+				Expire:          silenceExpire,
+				ExpireOnResolve: silenceExpireOnResolve,
 			}
 			if client {
-				s.Client = v.Name
+				s.Subscription = "client:" + v
 			}
 			if silenceSubscription {
-				s.Subscription = v.Name
+				s.Subscription = v
 			}
 
 			payload, err := json.Marshal(s)
@@ -220,27 +234,6 @@ func kazeSilence(values []string) {
 			}
 			postPayload(silencedapi, payload)
 		}
-
-	}
-
-	for _, v := range values {
-		s := &Silence{
-			Check:   silenceCheckName,
-			Reason:  silenceReason,
-			Creator: silenceCreator,
-		}
-		if client {
-			s.Client = v
-		}
-		if silenceSubscription {
-			s.Subscription = v
-		}
-
-		payload, err := json.Marshal(s)
-		if err != nil {
-			handleError(err)
-		}
-		postPayload(silencedapi, payload)
 	}
 }
 
@@ -251,7 +244,7 @@ func kazeClear(values []string) {
 		req := new(request)
 		req.Method = "GET"
 		req.URL = silencedapi
-		res := doSensuAPIRequest(req)
+		res, _ := doSensuAPIRequest(req)
 		if string(res) == "" {
 			fmt.Print("no silenced entries to be cleared.")
 			os.Exit(0)
@@ -270,13 +263,12 @@ func kazeClear(values []string) {
 		}
 		fmt.Print("cleared all silenced entries.")
 	} else {
-
 		for _, v := range values {
 			s := &Clear{
 				Check: silenceCheckName,
 			}
 			if client {
-				s.Client = v
+				s.ID = "client:" + v + ":" + silenceCheckName
 			}
 			if silenceSubscription {
 				s.Subscription = v
@@ -296,7 +288,7 @@ func kazeCheck(values []string) {
 		req := new(request)
 		req.Method = "GET"
 		req.URL = checksapi
-		res := doSensuAPIRequest(req)
+		res, _ := doSensuAPIRequest(req)
 		if string(res) == "" {
 			trowError("something went wrong, no results returned.")
 		}

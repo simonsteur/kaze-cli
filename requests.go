@@ -12,7 +12,7 @@ type request struct {
 	Payload []byte
 }
 
-func doSensuAPIRequest(request *request) []byte {
+func doSensuAPIRequest(request *request) ([]byte, int) {
 	// form request
 	req, _ := http.NewRequest(request.Method, request.URL, bytes.NewBuffer(request.Payload))
 	req.Header.Add("content-type", "application/x-www-form-urlencoded")
@@ -37,5 +37,5 @@ func doSensuAPIRequest(request *request) []byte {
 	defer res.Body.Close()
 	result := body
 	// return result
-	return result
+	return result, res.StatusCode
 }

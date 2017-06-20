@@ -34,7 +34,7 @@ func help() {
 	os.Exit(1)
 }
 
-//pretty JSON turns json input into a more readably and pretty json string
+//pretty JSON turns json input into a more readable and pretty json string
 func prettyJSON(input string) string {
 	var output bytes.Buffer
 	err := json.Indent(&output, []byte(input), "", "\t")
@@ -59,7 +59,7 @@ func readFileBulk(f string) Bulk {
 	return bulk
 }
 
-//readFile reads in the json file specified and places it in a struct.
+//readFile reads in the json file specified
 func readFile(f string) []byte {
 	file, err := ioutil.ReadFile(f)
 	if err != nil {
@@ -79,7 +79,11 @@ func postPayload(api string, payload []byte) []byte {
 	req.Method = "POST"
 	req.URL = api
 	req.Payload = payload
-	res := doSensuAPIRequest(req)
-	resultHandler(res)
+	res, statusCode := doSensuAPIRequest(req)
+	if statusCode == 204 || statusCode == 201 {
+		fmt.Print("success")
+	} else {
+		resultHandler(res)
+	}
 	return res
 }
