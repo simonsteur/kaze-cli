@@ -5,7 +5,7 @@ kaze-cli is a cli management tool for sensu. it provides a way to easily interac
 # configuration
 To operate kaze-cli needs to know your sensu-api endpoint. When running kaze-cli for the first time use the following command: 
 ```
-kaze -configure -address <address> -port <port> 
+kaze configure -address <address> -port <port> 
 ```
 # how to use
 ```
@@ -15,6 +15,7 @@ Usage:
   kaze [command] [options]
 
 Commands:
+  configure        configure kaze-cli
   list             list objects
   create-client    creates a proxy client
   create-result    creates a check result
