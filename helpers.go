@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"strings"
 )
 
 func usagePrint() {
@@ -20,6 +21,7 @@ func help() {
 	fmt.Printf("Usage:\n")
 	fmt.Print("  kaze [command] [options]\n\n")
 	fmt.Printf("Commands:\n")
+	fmt.Print("  configure        configure kaze-cli\n")
 	fmt.Print("  list             list objects\n")
 	fmt.Print("  create-client    creates a proxy client\n")
 	fmt.Print("  create-result    creates a check result\n")
@@ -86,4 +88,23 @@ func postPayload(api string, payload []byte) []byte {
 		resultHandler(res)
 	}
 	return res
+}
+
+func confirm() bool {
+	var input string
+	fmt.Print("(y/n)")
+	_, err := fmt.Scan(&input)
+	if err != nil {
+		handleError(err)
+	}
+	input = strings.TrimSpace(input)
+	input = strings.ToLower(input)
+	if input == "y" || input == "yes" {
+		return true
+	} else if input == "n" || input == "no" {
+		return false
+	} else {
+		fmt.Print("please type y/yes or n/no")
+		return confirm()
+	}
 }

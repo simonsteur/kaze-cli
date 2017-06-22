@@ -37,6 +37,9 @@ var (
 	name      stringArray
 	file      string
 	all       bool
+	// config command specific
+	address string
+	port    string
 	// createClient command specific
 	clientAddress       string
 	clientSubscriptions stringArray
@@ -82,6 +85,12 @@ func main() {
 	helpCmd := flag.NewFlagSet("help", flag.ExitOnError)
 	// help flags
 	helpCmd.Bool("help", false, "get help on the help command?")
+
+	// configure subcommand
+	configCmd := flag.NewFlagSet("configure", flag.ExitOnError)
+	// configure flags
+	configCmd.StringVar(&address, "address", "", "specify the address of the sensu-api")
+	configCmd.StringVar(&port, "port", "", "specify the port used by the sensu-api (defaults to 4567 when empty)")
 
 	// list subcommand
 	listCmd := flag.NewFlagSet("list", flag.ExitOnError)
@@ -175,6 +184,8 @@ func main() {
 
 	//switch on subcommand
 	switch os.Args[1] {
+	case "configure":
+		configCmd.Parse(os.Args[2:])
 	case "list":
 		listCmd.Parse(os.Args[2:])
 	case "create-client":
@@ -201,6 +212,17 @@ func main() {
 	}
 
 	//required flag check and function handling.
+
+	if configCmd.Parsed() {
+		if configCmd.NFlag() < 1 {
+			usagePrint()
+			configCmd.PrintDefaults()
+		}
+		if configCmd.NFlag() >= 1 && address != "" {
+			cmdControllerConfigure()
+		}
+	}
+
 	if listCmd.Parsed() {
 		if listCmd.NFlag() < 1 {
 			usagePrint()
@@ -235,7 +257,7 @@ func main() {
 	if createResultCmd.Parsed() {
 		if createResultCmd.NFlag() < 1 {
 			usagePrint()
-			createClientCmd.PrintDefaults()
+			createResultCmd.PrintDefaults()
 		}
 		if createResultCmd.NFlag() >= 1 {
 			cmdControllerCreateResult()

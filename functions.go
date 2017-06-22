@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"os"
 )
 
@@ -86,6 +87,39 @@ type Events []struct {
 type Resolve struct {
 	Client string `json:"client,omitempty"`
 	Check  string `json:"check,omitempty"`
+}
+
+//kazeConfigure creates a configuration file for kaze-cli to use
+func kazeConfigure() {
+	path := "/etc/kaze-cli/config.json"
+	if _, err := os.Stat(path); os.IsNotExist(err) {
+		fmt.Print("creating configuration file...")
+		kazeCreateConfigFile(address, port, path)
+	} else {
+		fmt.Print("config file present, do you wish to override?")
+		confirimation := confirm()
+		if confirimation {
+			fmt.Print("overriding configuration...")
+			kazeCreateConfigFile(address, port, path)
+		} else {
+			fmt.Print("no action taken.")
+		}
+	}
+}
+
+func kazeCreateConfigFile(address, port, path string) {
+	if port == "" {
+		port = "4567"
+	}
+	c := &Config{
+		Sensu: address,
+		Port:  port,
+	}
+	output, err := json.Marshal(c)
+	if err != nil {
+		handleError(err)
+	}
+	ioutil.WriteFile(path, output, 0644)
 }
 
 //kazeList lists all return values or a single value

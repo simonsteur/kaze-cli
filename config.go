@@ -13,10 +13,6 @@ type Config struct {
 
 // Cfg reads the config.json file in the configuration dir
 func Cfg() Config {
-	// if configFile == "" {
-	// 	handleWarning("no configuration file specified")
-	// }
-	// file, err := ioutil.ReadFile(configFile)
 	file, err := ioutil.ReadFile("./configuration/config.json")
 	if err != nil {
 		handleError(err)

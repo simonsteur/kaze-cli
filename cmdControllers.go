@@ -1,5 +1,9 @@
 package main
 
+func cmdControllerConfigure() {
+	kazeConfigure()
+}
+
 func cmdControllerList() {
 	if client {
 		kazeList(clientsapi, name)
