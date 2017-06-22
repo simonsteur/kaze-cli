@@ -13,7 +13,7 @@ type Config struct {
 
 // Cfg reads the config.json file in the configuration dir
 func Cfg() Config {
-	file, err := ioutil.ReadFile("./configuration/config.json")
+	file, err := ioutil.ReadFile("/etc/kaze-cli/config.json")
 	if err != nil {
 		handleError(err)
 

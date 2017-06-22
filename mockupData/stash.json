@@ -1,7 +1,0 @@
-{
-  "path": "example/stash",
-  "content": {
-    "message": "example"
-  },
-  "expire": 300
-}
