@@ -111,6 +111,7 @@ func kazeCreateConfigFile(address, port, path string) {
 	if port == "" {
 		port = "4567"
 	}
+
 	c := &Config{
 		Sensu: address,
 		Port:  port,
@@ -118,6 +119,9 @@ func kazeCreateConfigFile(address, port, path string) {
 	output, err := json.Marshal(c)
 	if err != nil {
 		handleError(err)
+	}
+	if _, err := os.Stat("/etc/kaze-cli"); os.IsNotExist(err) {
+		os.MkdirAll("/etc/kaze-cli", 0664)
 	}
 	ioutil.WriteFile(path, output, 0644)
 }
