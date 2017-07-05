@@ -209,7 +209,7 @@ func main() {
 	case "help":
 		helpCmd.Parse(os.Args[2:])
 	default:
-		flag.PrintDefaults()
+		flag.Usage()
 		os.Exit(1)
 	}
 
@@ -218,7 +218,7 @@ func main() {
 	if configCmd.Parsed() {
 		if configCmd.NFlag() < 1 {
 			usagePrint()
-			configCmd.PrintDefaults()
+			configCmd.Usage()
 		}
 		if configCmd.NFlag() >= 1 && address != "" {
 			cmdControllerConfigure()
@@ -228,7 +228,7 @@ func main() {
 	if listCmd.Parsed() {
 		if listCmd.NFlag() < 1 {
 			usagePrint()
-			listCmd.PrintDefaults()
+			listCmd.Usage()
 		}
 		if listCmd.NFlag() <= 2 {
 			if listCmd.NFlag() == 2 && len(name) == 0 {
@@ -243,7 +243,7 @@ func main() {
 	if createClientCmd.Parsed() {
 		if createClientCmd.NFlag() < 1 {
 			usagePrint()
-			createClientCmd.PrintDefaults()
+			createClientCmd.Usage()
 		}
 		if createClientCmd.NFlag() == 1 && file == "" {
 			trowError("not enough arguments given, if -file flag is not used then 4 arguments are expected.")
@@ -259,7 +259,7 @@ func main() {
 	if createResultCmd.Parsed() {
 		if createResultCmd.NFlag() < 1 {
 			usagePrint()
-			createResultCmd.PrintDefaults()
+			createResultCmd.Usage()
 		}
 		if createResultCmd.NFlag() >= 1 {
 			cmdControllerCreateResult()
@@ -269,7 +269,7 @@ func main() {
 	if createStashCmd.Parsed() {
 		if createStashCmd.NFlag() < 1 {
 			usagePrint()
-			createStashCmd.PrintDefaults()
+			createStashCmd.Usage()
 		}
 		if createStashCmd.NFlag() >= 1 {
 			cmdControllerCreateStash()
@@ -279,7 +279,7 @@ func main() {
 	if deleteCmd.Parsed() {
 		if deleteCmd.NFlag() < 1 {
 			usagePrint()
-			deleteCmd.PrintDefaults()
+			deleteCmd.Usage()
 		}
 		if deleteCmd.NFlag() <= 3 {
 			if deleteCmd.NFlag() == 3 && len(name) == 0 && deleteCheckName == "" {
@@ -309,7 +309,7 @@ func main() {
 	if silenceCmd.Parsed() {
 		if silenceCmd.NFlag() < 1 {
 			usagePrint()
-			silenceCmd.PrintDefaults()
+			silenceCmd.Usage()
 		}
 		if silenceCmd.NFlag() >= 1 {
 			if client && silenceSubscription {
@@ -327,7 +327,7 @@ func main() {
 	if silenceClearCmd.Parsed() {
 		if silenceClearCmd.NFlag() < 1 {
 			usagePrint()
-			silenceClearCmd.PrintDefaults()
+			silenceClearCmd.Usage()
 		}
 		if silenceClearCmd.NFlag() >= 1 {
 			if client && silenceSubscription {
@@ -345,7 +345,7 @@ func main() {
 	if checkCmd.Parsed() {
 		if checkCmd.NFlag() < 1 {
 			usagePrint()
-			checkCmd.PrintDefaults()
+			checkCmd.Usage()
 		}
 		if checkCmd.NFlag() >= 1 {
 			if len(name) == 0 && all == false {
@@ -358,7 +358,7 @@ func main() {
 	if resolveCmd.Parsed() {
 		if checkCmd.NFlag() < 1 {
 			usagePrint()
-			resolveCmd.PrintDefaults()
+			resolveCmd.Usage()
 		}
 		if resolveCmd.NFlag() > 2 {
 			trowError("too many arguments given, expecting 3 or less.")
