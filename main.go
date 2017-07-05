@@ -9,7 +9,9 @@ import (
 
 var (
 	//load config
-	config = Cfg()
+	usrdir     = getUsrDir()
+	configfile = usrdir + "/kaze-cli/config.json"
+	config     = Cfg()
 
 	// api endpoints
 	apibase          = "http://" + config.Sensu + ":" + config.Port

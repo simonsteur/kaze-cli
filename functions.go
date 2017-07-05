@@ -91,23 +91,22 @@ type Resolve struct {
 
 //kazeConfigure creates a configuration file for kaze-cli to use
 func kazeConfigure() {
-	path := "/etc/kaze-cli/config.json"
-	if _, err := os.Stat(path); os.IsNotExist(err) {
+	if _, err := os.Stat(configfile); os.IsNotExist(err) {
 		fmt.Print("creating configuration file...")
-		kazeCreateConfigFile(address, port, path)
+		kazeCreateConfigFile(address, port)
 	} else {
 		fmt.Print("config file present, do you wish to override?")
 		confirimation := confirm()
 		if confirimation {
 			fmt.Print("overriding configuration...")
-			kazeCreateConfigFile(address, port, path)
+			kazeCreateConfigFile(address, port)
 		} else {
 			fmt.Print("no action taken.")
 		}
 	}
 }
 
-func kazeCreateConfigFile(address, port, path string) {
+func kazeCreateConfigFile(address, port string) {
 	if port == "" {
 		port = "4567"
 	}
@@ -120,10 +119,13 @@ func kazeCreateConfigFile(address, port, path string) {
 	if err != nil {
 		handleError(err)
 	}
-	if _, err := os.Stat("/etc/kaze-cli"); os.IsNotExist(err) {
-		os.MkdirAll("/etc/kaze-cli", 0664)
+	if _, err := os.Stat(usrdir + "/kaze-cli"); os.IsNotExist(err) {
+		err := os.MkdirAll(usrdir+"/kaze-cli", 0664)
+		if err != nil {
+			handleError(err)
+		}
 	}
-	ioutil.WriteFile(path, output, 0644)
+	ioutil.WriteFile(configfile, output, 0644)
 }
 
 //kazeList lists all return values or a single value

@@ -6,7 +6,12 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"regexp"
 	"strings"
+
+	"path/filepath"
+
+	homedir "github.com/mitchellh/go-homedir"
 )
 
 func usagePrint() {
@@ -107,4 +112,21 @@ func confirm() bool {
 		fmt.Print("please type y/yes or n/no")
 		return confirm()
 	}
+}
+
+func getUsrDir() string {
+	dir, _ := homedir.Dir()
+	//windows logic which makes sure a valid path is returned.
+	var isAbsWinDrive = regexp.MustCompile(`^[a-zA-Z]\:\\`)
+	var isRootNotC = regexp.MustCompile(`^[cC]\:\\`)
+	if isAbsWinDrive.MatchString(dir) {
+		if !isRootNotC.MatchString(dir) {
+			dir := "c:/users/"
+			fmt.Print(dir)
+			return dir
+		}
+		dir := filepath.ToSlash(dir)
+		return dir
+	}
+	return dir
 }

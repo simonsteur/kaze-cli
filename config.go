@@ -14,10 +14,10 @@ type Config struct {
 
 // Cfg reads the config.json file in the configuration dir
 func Cfg() Config {
-	if _, err := os.Stat("/etc/kaze-cli/config.json"); os.IsNotExist(err) {
-		kazeCreateConfigFile("127.0.0.0", "", "/etc/kaze-cli/config.json")
+	if _, err := os.Stat(configfile); os.IsNotExist(err) {
+		kazeCreateConfigFile("127.0.0.0", "")
 	}
-	file, err := ioutil.ReadFile("/etc/kaze-cli/config.json")
+	file, err := ioutil.ReadFile(configfile)
 	if err != nil {
 		handleError(err)
 	}
@@ -25,7 +25,6 @@ func Cfg() Config {
 	err = json.Unmarshal(file, &cf)
 	if err != nil {
 		handleError(err)
-
 	}
 	return cf
 }
