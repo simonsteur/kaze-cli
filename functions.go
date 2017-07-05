@@ -120,12 +120,12 @@ func kazeCreateConfigFile(address, port string) {
 		handleError(err)
 	}
 	if _, err := os.Stat(usrdir + "/kaze-cli"); os.IsNotExist(err) {
-		err := os.MkdirAll(usrdir+"/kaze-cli", 0664)
+		err := os.MkdirAll(usrdir+"/kaze-cli", 0777)
 		if err != nil {
 			handleError(err)
 		}
 	}
-	ioutil.WriteFile(configfile, output, 0644)
+	ioutil.WriteFile(configfile, output, 0777)
 }
 
 //kazeList lists all return values or a single value
