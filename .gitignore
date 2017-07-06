@@ -1,5 +1,6 @@
 .vscode
 .mockupData
 .configuration
+.applications/*
 .applications
 .debug
