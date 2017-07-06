@@ -36,7 +36,7 @@ sensu refers to the japense foldable fan, the dashboard for sensu is called uchi
 
 # license 
 
-Copyright [2017] [Simon Steur]
+Copyright 2017 Simon Steur
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
