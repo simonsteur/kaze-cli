@@ -2,6 +2,13 @@
 
 kaze-cli is a cli management tool for sensu. it provides a way to easily interact with the sensu api which gives you more time to build up your monitoring solution. 
 
+# download
+* [osx 64bit](https://github.com/simonsteur/kaze-cli/releases/download/1.0/kaze-cli-darwin-amd64.zip)
+* [freebsd 64bit](https://github.com/simonsteur/kaze-cli/releases/download/1.0/kaze-cli-freebsd-amd64.zip)
+* [linux 64bit](https://github.com/simonsteur/kaze-cli/releases/download/1.0/kaze-cli-linux-amd64.zip)
+* [windows 64bit](https://github.com/simonsteur/kaze-cli/releases/download/1.0/kaze-cli-win-amd64.zip)
+
+
 # configuration
 To operate kaze-cli needs to know your sensu-api endpoint. When running kaze-cli for the first time use the following command: 
 ```
